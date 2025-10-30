@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Truvani</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .contact-container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #e63946, #d62839);
+            color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .contact-info h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .contact-info p {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .info-text h4 {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .info-text p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: white;
+            color: #e63946;
+            transform: translateY(-3px);
+        }
+
+        .contact-form-section {
+            padding: 50px 40px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            color: #e63946;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #d62839;
+            transform: translateX(-5px);
+        }
+
+        .contact-form-section h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #e63946;
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e63946, #d62839);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(230, 57, 70, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                padding: 30px 20px;
+            }
+
+            .contact-form-section {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-container">
+        <div class="contact-info">
+            <h2>Get In Touch</h2>
+            <p>Have a question or want to work with us? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+
+            <div class="info-item">
+                <div class="info-icon">📍</div>
+                <div class="info-text">
+                    <h4>Address</h4>
+                    <p>New Delhi, India</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">📧</div>
+                <div class="info-text">
+                    <h4>Email</h4>
+                    <p>nitinchoudharyw55@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">📱</div>
+                <div class="info-text">
+                    <h4>Phone</h4>
+                    <p>+91 1800-XXX-XXXX</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">⏰</div>
+                <div class="info-text">
+                    <h4>Working Hours</h4>
+                    <p>Mon - Fri: 9:00 AM - 6:00 PM</p>
+                </div>
+            </div>
+
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="Instagram">📸</a>
+                <a href="#" title="LinkedIn">💼</a>
+                <a href="#" title="YouTube">📺</a>
+            </div>
+        </div>
+
+        <div class="contact-form-section">
+            <a href="index.html" class="back-btn">← Back to Home</a>
+            <h2>Send us a Message</h2>
+
+            <form id="contactForm" onsubmit="submitForm(event)">
+                <div class="form-group">
+                    <label>Your Name *</label>
+                    <input type="text" name="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Email *</label>
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject *</label>
+                    <select name="subject" required>
+                        <option value="">Select a subject</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="partnership">Partnership</option>
+                        <option value="advertising">Advertising</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Message *</label>
+                    <textarea name="message" placeholder="Write your message here..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Message 📤</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function submitForm(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+
+            // Show success message
+            alert(`✅ Message Sent Successfully!\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nThank you for contacting us! We'll get back to you soon.`);
+            
+            // Reset form
+            e.target.reset();
+        }
+
+        // Add animation to form elements
+        const formInputs = document.querySelectorAll('input, textarea, select');
+        formInputs.forEach((input, index) => {
+            input.style.animation = `slideUp 0.6s ease ${index * 0.1}s backwards`;
+        });
+    </script>
+</body>
+</html>
