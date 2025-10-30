@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truvani - Latest News & Breaking Headlines</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .top-bar {
+            background: #1a1a1a;
+            color: white;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .top-bar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .date-time {
+            display: flex;
+            gap: 20px;
+        }
+
+        header {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e63946;
+            letter-spacing: 2px;
+        }
+
+        .logo-sub {
+            font-size: 12px;
+            color: #666;
+            margin-top: -5px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 25px;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            padding: 5px 10px;
+            width: 250px;
+        }
+
+        .admin-btn {
+            background: #ffc107;
+            color: #1a1a1a;
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 15px;
+            transition: background 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: #ffb300;
+        }
+
+        .nav-bar {
+            background: #e63946;
+            padding: 0;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .nav-content a {
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-content a:hover {
+            background: #d62839;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .breaking-news {
+            background: #fff3cd;
+            padding: 10px 20px;
+            margin: 20px auto;
+            max-width: 1200px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .breaking-news span {
+            color: #e63946;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .hero-news {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .hero-news img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .hero-content {
+            padding: 20px;
+        }
+
+        .category-tag {
+            background: #e63946;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .hero-content h1 {
+            font-size: 28px;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .meta-info {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .news-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .news-card-content {
+            padding: 15px;
+        }
+
+        .news-card h3 {
+            font-size: 18px;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-section h2 {
+            color: #e63946;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e63946;
+        }
+
+        .trending-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+
+        .trending-item:hover {
+            color: #e63946;
+        }
+
+        .trending-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #e63946;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px 20px;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .footer-section h3 {
+            color: #e63946;
+            margin-bottom: 15px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            padding: 5px 0;
+        }
+
+        .footer-section ul li a {
+            color: #aaa;
+            text-decoration: none;
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            color: #aaa;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-box input {
+                width: 150px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="date-time">
+                <span id="currentDate"></span>
+                <span id="currentTime"></span>
+            </div>
+            <div>📧 nitinchoudharyw55@gmail.com | 📱 +91 1800-XXX-XXXX</div>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-main">
+            <div>
+                <div class="logo">TRUVANI</div>
+                <div class="logo-sub">Truth in Every Word</div>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div class="search-box">
+                    <input type="text" placeholder="Search news..." id="searchInput">
+                    <span>🔍</span>
+                </div>
+                <a href="admin.html" class="admin-btn">⚙️ Admin Panel</a>
+            </div>
+        </div>
+        <nav class="nav-bar">
+            <div class="nav-content">
+                <a href="#home">Home</a>
+                <a href="#india">India</a>
+                <a href="#world">World</a>
+                <a href="#business">Business</a>
+                <a href="#sports">Sports</a>
+                <a href="#technology">Technology</a>
+                <a href="#entertainment">Entertainment</a>
+                <a href="#lifestyle">Lifestyle</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="breaking-news">
+        <span>🔴 BREAKING NEWS:</span>
+        <span id="breakingNewsText">Stay updated with latest news from around the world</span>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="hero-news">
+                <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800" alt="Main News">
+                <div class="hero-content">
+                    <span class="category-tag">POLITICS</span>
+                    <h1>Major Political Development Shapes National Discourse</h1>
+                    <div class="meta-info">📅 October 31, 2025 | 👤 By Nitin Choudhary | 💬 245 Comments</div>
+                    <p>In a significant development, policy makers have announced comprehensive reforms that are expected to impact millions across the nation. The announcement came during a special session...</p>
+                </div>
+            </div>
+
+            <div class="news-grid">
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?w=400" alt="Business News">
+                    <div class="news-card-content">
+                        <span class="category-tag">BUSINESS</span>
+                        <h3>Markets Show Strong Performance Amid Economic Recovery</h3>
+                        <div class="meta-info">📅 2 hours ago</div>
+                        <p>Financial markets demonstrated robust growth as economic indicators point towards sustained recovery...</p>
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400" alt="Sports News">
+                    <div class="news-card-content">
+                        <span class="category-tag">SPORTS</span>
+                        <h3>National Team Secures Historic Victory in Championship</h3>
+                        <div class="meta-info">📅 3 hours ago</div>
+                        <p>In a thrilling finale, the national team clinched a memorable win that has fans celebrating nationwide...</p>
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400" alt="Technology News">
+                    <div class="news-card-content">
+                        <span class="category-tag">TECHNOLOGY</span>
+                        <h3>Revolutionary Tech Innovation Promises to Transform Industry</h3>
+                        <div class="meta-info">📅 5 hours ago</div>
+                        <p>A breakthrough technological advancement is set to revolutionize how businesses operate in the digital age...</p>
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400" alt="Entertainment News">
+                    <div class="news-card-content">
+                        <span class="category-tag">ENTERTAINMENT</span>
+                        <h3>Blockbuster Film Breaks Box Office Records Worldwide</h3>
+                        <div class="meta-info">📅 6 hours ago</div>
+                        <p>The highly anticipated release has shattered previous records, becoming a global phenomenon...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h2>🔥 Trending Now</h2>
+                <div class="trending-item">
+                    <span class="trending-number">1</span>
+                    <strong>Climate Summit Reaches Landmark Agreement</strong>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">2</span>
+                    <strong>Tech Giant Announces Major AI Breakthrough</strong>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">3</span>
+                    <strong>Sports Legend Announces Retirement</strong>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">4</span>
+                    <strong>New Healthcare Initiative Benefits Millions</strong>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">5</span>
+                    <strong>Education Reform Gains Widespread Support</strong>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2>📰 Latest Updates</h2>
+                <div class="trending-item">
+                    <strong>Transportation Infrastructure Project Launched</strong>
+                    <div class="meta-info">15 mins ago</div>
+                </div>
+                <div class="trending-item">
+                    <strong>Cultural Festival Celebrates Traditional Arts</strong>
+                    <div class="meta-info">30 mins ago</div>
+                </div>
+                <div class="trending-item">
+                    <strong>Research Team Makes Scientific Discovery</strong>
+                    <div class="meta-info">1 hour ago</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2>🎯 Popular Categories</h2>
+                <div class="trending-item">Politics</div>
+                <div class="trending-item">Business</div>
+                <div class="trending-item">Technology</div>
+                <div class="trending-item">Sports</div>
+                <div class="trending-item">Entertainment</div>
+            </div>
+        </aside>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Truvani</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Our Team</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Advertise</a></li>
+                    <li><a href="#">RSS Feed</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Sections</h3>
+                <ul>
+                    <li><a href="#">India News</a></li>
+                    <li><a href="#">World News</a></li>
+                    <li><a href="#">Business</a></li>
+                    <li><a href="#">Technology</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="#">📘 Facebook</a></li>
+                    <li><a href="#">🐦 Twitter</a></li>
+                    <li><a href="#">📸 Instagram</a></li>
+                    <li><a href="#">📺 YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Truvani. All rights reserved. | Managed by Nitin Choudhary</p>
+            <p>Contact: nitinchoudharyw55@gmail.com</p>
+        </div>
+    </footer>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString('en-IN');
+            
+            document.getElementById('currentDate').textContent = dateStr;
+            document.getElementById('currentTime').textContent = timeStr;
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        const breakingNews = [
+            "Major policy reform announced affecting millions nationwide",
+            "International summit concludes with historic agreements",
+            "Economic indicators show strong recovery trends",
+            "Scientific breakthrough promises revolutionary advances"
+        ];
+
+        let newsIndex = 0;
+        function rotateBreakingNews() {
+            document.getElementById('breakingNewsText').textContent = breakingNews[newsIndex];
+            newsIndex = (newsIndex + 1) % breakingNews.length;
+        }
+
+        setInterval(rotateBreakingNews, 5000);
+
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                alert('Search functionality: ' + this.value);
+            }
+        });
+
+        document.querySelectorAll('.news-card, .trending-item').forEach(item => {
+            item.addEventListener('click', function() {
+                alert('This would open the full news article');
+            });
+        });
+    </script>
+</body>
+</html>
