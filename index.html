@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Truvani - Latest news and breaking headlines. Truth in every word.">
+    <meta name="keywords" content="news, breaking news, truvani, latest news, india news">
+    <meta name="author" content="Nitin Choudhary">
     <title>Truvani - Latest News & Breaking Headlines</title>
     <style>
+        :root {
+            --primary-color: #e63946;
+            --primary-dark: #d62839;
+            --text-color: #333;
+            --bg-color: #f5f5f5;
+            --white: #ffffff;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +24,47 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
         }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+
+        .theme-switcher h4 {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.3s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-red { background: #e63946; }
+        .theme-blue { background: #2196F3; }
+        .theme-green { background: #4CAF50; }
+        .theme-purple { background: #9C27B0; }
+        .theme-orange { background: #FF9800; }
 
         .top-bar {
             background: #1a1a1a;
@@ -38,12 +87,37 @@
             gap: 20px;
         }
 
+        .social-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--primary-color);
+        }
+
         header {
-            background: white;
+            background: var(--white);
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
         }
 
         .header-main {
@@ -55,10 +129,29 @@
             align-items: center;
         }
 
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
         .logo {
             font-size: 36px;
             font-weight: bold;
-            color: #e63946;
+            color: var(--primary-color);
             letter-spacing: 2px;
         }
 
@@ -71,9 +164,14 @@
         .search-box {
             display: flex;
             align-items: center;
-            background: #f5f5f5;
+            background: var(--bg-color);
             padding: 8px 15px;
             border-radius: 25px;
+            transition: box-shadow 0.3s;
+        }
+
+        .search-box:focus-within {
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
         }
 
         .search-box input {
@@ -92,15 +190,17 @@
             text-decoration: none;
             font-weight: bold;
             margin-left: 15px;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .admin-btn:hover {
             background: #ffb300;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
         }
 
         .nav-bar {
-            background: #e63946;
+            background: var(--primary-color);
             padding: 0;
         }
 
@@ -118,11 +218,29 @@
             padding: 15px 20px;
             display: block;
             font-weight: 500;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            position: relative;
         }
 
         .nav-content a:hover {
-            background: #d62839;
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .nav-content a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: white;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .nav-content a:hover::after {
+            width: 80%;
         }
 
         .container {
@@ -140,10 +258,16 @@
             margin: 20px auto;
             max-width: 1200px;
             border-left: 4px solid #ffc107;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
         }
 
         .breaking-news span {
-            color: #e63946;
+            color: var(--primary-color);
             font-weight: bold;
             margin-right: 10px;
         }
@@ -159,12 +283,23 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .hero-news:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
         .hero-news img {
             width: 100%;
             height: 400px;
             object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .hero-news:hover img {
+            transform: scale(1.05);
         }
 
         .hero-content {
@@ -172,7 +307,7 @@
         }
 
         .category-tag {
-            background: #e63946;
+            background: var(--primary-color);
             color: white;
             padding: 5px 15px;
             border-radius: 3px;
@@ -185,6 +320,11 @@
             font-size: 28px;
             margin: 10px 0;
             line-height: 1.4;
+            transition: color 0.3s;
+        }
+
+        .hero-content h1:hover {
+            color: var(--primary-color);
         }
 
         .meta-info {
@@ -205,17 +345,23 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s;
         }
 
         .news-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
         .news-card img {
             width: 100%;
             height: 200px;
             object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .news-card:hover img {
+            transform: scale(1.1);
         }
 
         .news-card-content {
@@ -242,16 +388,17 @@
         }
 
         .sidebar-section h2 {
-            color: #e63946;
+            color: var(--primary-color);
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e63946;
+            border-bottom: 2px solid var(--primary-color);
         }
 
         .trending-item {
             padding: 15px 0;
             border-bottom: 1px solid #eee;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .trending-item:last-child {
@@ -259,20 +406,67 @@
         }
 
         .trending-item:hover {
-            color: #e63946;
+            color: var(--primary-color);
+            padding-left: 10px;
         }
 
         .trending-number {
             display: inline-block;
             width: 30px;
             height: 30px;
-            background: #e63946;
+            background: var(--primary-color);
             color: white;
             text-align: center;
             line-height: 30px;
             border-radius: 50%;
             margin-right: 10px;
             font-weight: bold;
+        }
+
+        /* Newsletter Section */
+        .newsletter {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .newsletter h3 {
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            max-width: 500px;
+            margin: 20px auto 0;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .newsletter-form button {
+            padding: 12px 30px;
+            background: #ffc107;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .newsletter-form button:hover {
+            background: #ffb300;
+            transform: scale(1.05);
         }
 
         footer {
@@ -291,7 +485,7 @@
         }
 
         .footer-section h3 {
-            color: #e63946;
+            color: var(--primary-color);
             margin-bottom: 15px;
         }
 
@@ -306,6 +500,7 @@
         .footer-section ul li a {
             color: #aaa;
             text-decoration: none;
+            transition: color 0.3s;
         }
 
         .footer-section ul li a:hover {
@@ -318,6 +513,31 @@
             margin-top: 20px;
             border-top: 1px solid #333;
             color: #aaa;
+        }
+
+        /* Contact Button */
+        .contact-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 998;
+        }
+
+        .contact-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         }
 
         @media (max-width: 768px) {
@@ -338,34 +558,68 @@
             }
             
             .logo {
-                font-size: 28px;
+                font-size: 24px;
+            }
+
+            .theme-switcher {
+                top: auto;
+                bottom: 100px;
+                right: 10px;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Theme Switcher -->
+    <div class="theme-switcher">
+        <h4>🎨 Theme</h4>
+        <button class="theme-btn theme-red" onclick="changeTheme('#e63946', '#d62839')"></button>
+        <button class="theme-btn theme-blue" onclick="changeTheme('#2196F3', '#1976D2')"></button>
+        <button class="theme-btn theme-green" onclick="changeTheme('#4CAF50', '#388E3C')"></button>
+        <button class="theme-btn theme-purple" onclick="changeTheme('#9C27B0', '#7B1FA2')"></button>
+        <button class="theme-btn theme-orange" onclick="changeTheme('#FF9800', '#F57C00')"></button>
+    </div>
+
+    <!-- Contact Float Button -->
+    <a href="contact.html" class="contact-float" title="Contact Us">✉️</a>
+
     <div class="top-bar">
         <div class="top-bar-content">
             <div class="date-time">
                 <span id="currentDate"></span>
                 <span id="currentTime"></span>
             </div>
-            <div>📧 nitinchoudharyw55@gmail.com | 📱 +91 1800-XXX-XXXX</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span>📧 nitinchoudharyw55@gmail.com</span>
+                <div class="social-links">
+                    <a href="#" title="Facebook">📘</a>
+                    <a href="#" title="Twitter">🐦</a>
+                    <a href="#" title="Instagram">📸</a>
+                    <a href="#" title="YouTube">📺</a>
+                </div>
+            </div>
         </div>
     </div>
 
     <header>
         <div class="header-main">
-            <div>
-                <div class="logo">TRUVANI</div>
-                <div class="logo-sub">Truth in Every Word</div>
+            <div class="logo-section">
+                <div class="logo-img">T</div>
+                <div>
+                    <div class="logo">TRUVANI</div>
+                    <div class="logo-sub">Truth in Every Word</div>
+                </div>
             </div>
             <div style="display: flex; align-items: center;">
                 <div class="search-box">
                     <input type="text" placeholder="Search news..." id="searchInput">
                     <span>🔍</span>
                 </div>
-                <a href="admin.html" class="admin-btn">⚙️ Admin Panel</a>
+                <a href="admin.html" class="admin-btn">⚙️ Admin</a>
             </div>
         </div>
         <nav class="nav-bar">
@@ -377,7 +631,7 @@
                 <a href="#sports">Sports</a>
                 <a href="#technology">Technology</a>
                 <a href="#entertainment">Entertainment</a>
-                <a href="#lifestyle">Lifestyle</a>
+                <a href="contact.html">Contact</a>
             </div>
         </nav>
     </header>
@@ -416,7 +670,7 @@
                         <span class="category-tag">SPORTS</span>
                         <h3>National Team Secures Historic Victory in Championship</h3>
                         <div class="meta-info">📅 3 hours ago</div>
-                        <p>In a thrilling finale, the national team clinched a memorable win that has fans celebrating nationwide...</p>
+                        <p>In a thrilling finale, the national team clinched a memorable win...</p>
                     </div>
                 </div>
 
@@ -426,7 +680,7 @@
                         <span class="category-tag">TECHNOLOGY</span>
                         <h3>Revolutionary Tech Innovation Promises to Transform Industry</h3>
                         <div class="meta-info">📅 5 hours ago</div>
-                        <p>A breakthrough technological advancement is set to revolutionize how businesses operate in the digital age...</p>
+                        <p>A breakthrough technological advancement is set to revolutionize businesses...</p>
                     </div>
                 </div>
 
@@ -436,9 +690,19 @@
                         <span class="category-tag">ENTERTAINMENT</span>
                         <h3>Blockbuster Film Breaks Box Office Records Worldwide</h3>
                         <div class="meta-info">📅 6 hours ago</div>
-                        <p>The highly anticipated release has shattered previous records, becoming a global phenomenon...</p>
+                        <p>The highly anticipated release has shattered previous records...</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Newsletter Section -->
+            <div class="newsletter">
+                <h3>📬 Subscribe to Our Newsletter</h3>
+                <p>Get latest news delivered directly to your inbox</p>
+                <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                    <input type="email" placeholder="Enter your email" required>
+                    <button type="submit">Subscribe</button>
+                </form>
             </div>
         </div>
 
@@ -502,7 +766,7 @@
                     <li><a href="#">About Us</a></li>
                     <li><a href="#">Our Team</a></li>
                     <li><a href="#">Careers</a></li>
-                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -540,48 +804,51 @@
     </footer>
 
     <script>
+        // Date & Time Update
         function updateDateTime() {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('en-IN', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-IN', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
             });
-            const timeStr = now.toLocaleTimeString('en-IN');
-            
-            document.getElementById('currentDate').textContent = dateStr;
-            document.getElementById('currentTime').textContent = timeStr;
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-IN');
         }
-
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
+        // Breaking News Rotation
         const breakingNews = [
             "Major policy reform announced affecting millions nationwide",
             "International summit concludes with historic agreements",
             "Economic indicators show strong recovery trends",
             "Scientific breakthrough promises revolutionary advances"
         ];
-
         let newsIndex = 0;
         function rotateBreakingNews() {
             document.getElementById('breakingNewsText').textContent = breakingNews[newsIndex];
             newsIndex = (newsIndex + 1) % breakingNews.length;
         }
-
         setInterval(rotateBreakingNews, 5000);
 
+        // Theme Changer
+        function changeTheme(primary, dark) {
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--primary-dark', dark);
+            alert('✨ Theme changed successfully!');
+        }
+
+        // Newsletter Subscription
+        function subscribeNewsletter(e) {
+            e.preventDefault();
+            const email = e.target.querySelector('input').value;
+            alert('✅ Thank you for subscribing!\n\nEmail: ' + email + '\n\nYou will receive our latest updates.');
+            e.target.reset();
+        }
+
+        // Search
         document.getElementById('searchInput').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') {
-                alert('Search functionality: ' + this.value);
+                alert('🔍 Search functionality: ' + this.value);
             }
-        });
-
-        document.querySelectorAll('.news-card, .trending-item').forEach(item => {
-            item.addEventListener('click', function() {
-                alert('This would open the full news article');
-            });
         });
     </script>
 </body>
