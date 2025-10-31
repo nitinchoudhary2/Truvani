@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="Y9MXg-8nZFJG7mFrJw32joXU_CwG7gqCJM787sRgQC4" />
+  <title>Loading... | TRUVANI</title>
+
+  <!-- ====== CRITICAL CSS (inlined) ====== -->
+  <style>
+    :root{--p:#e63946;--s:#1a1a1a;--a:#00d4ff;--l:#fff;--d:#0a0a0a;--t:#333;--c:#f5f5f5;--b:#eee;--like:#e91e63}
+    body.dark-mode{--l:#1a1a1a;--d:#000;--t:#f0f0f0;--c:#222;--b:#333}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--c);color:var(--t);line-height:1.6;overflow-x:hidden}
+    a{color:var(--p);text-decoration:none}
+    header{position:sticky;top:0;z-index:1000;background:var(--l);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .header-main{max-width:1200px;margin:auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .logo{font-size:32px;font-weight:900;background:linear-gradient(45deg,var(--p),#c91828);-webkit-background-clip:text;color:transparent}
+    .logo-sub{font-size:11px;opacity:.7}
+    .search-box{display:flex;background:var(--c);border:1px solid var(--b);border-radius:25px;overflow:hidden}
+    .search-box input{border:none;outline:none;padding:8px 12px;width:160px;font-size:14px;color:var(--t)}
+    .search-btn{background:var(--p);color:#fff;padding:8px 12px;border:none;cursor:pointer}
+    .mode-toggle{cursor:pointer;font-size:18px;padding:8px;border-radius:50%;color:var(--t)}
+    .quick-link-btn{padding:8px 14px;border-radius:5px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:5px}
+    .btn-ai{background:var(--a);color:#000}
+    .btn-contact{background:#343a40;color:#fff}
+    .nav-bar{background:var(--p)}
+    .nav-content{max-width:1200px;margin:auto;display:flex;flex-wrap:wrap}
+    .nav-content a{color:#fff;padding:12px 16px;font-weight:500}
+    .article-container{max-width:900px;margin:30px auto;padding:20px;background:var(--l);border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+    #article-content-area{opacity:0;transition:opacity .4s}
+    .skeleton{animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{background:#e0e0e0}50%{background:#f0f0f0}}
+    .article-header h1{font-size:32px;margin-bottom:12px}
+    .meta-info{font-size:14px;color:#666;display:flex;gap:12px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--b)}
+    .article-image{width:100%;max-height:480px;object-fit:cover;border-radius:8px;margin:20px 0}
+    .article-body{font-size:18px;opacity:.9}
+    .like-section{margin-top:24px;padding-top:16px;border-top:1px solid var(--b);display:flex;gap:8px;align-items:center}
+    .like-button{background:var(--c);border:2px solid var(--like);color:var(--like);padding:8px 16px;border-radius:25px;font-weight:600;cursor:pointer;transition:.3s;display:inline-flex;gap:6px;align-items:center}
+    .like-button:hover{background:var(--like);color:#fff}
+    .like-button.liked{background:var(--like);color:#fff;cursor:not-allowed}
+    footer{background:var(--s);color:#aaa;padding:40px 20px;text-align:center}
+  </style>
+
+  <!-- ====== PRELOAD CRITICAL RESOURCES ====== -->
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" as="script" />
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" as="script" />
+
+  <!-- ====== NON-CRITICAL CSS (async) ====== -->
+  <link rel="preload" href="article.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="article.css"></noscript>
+
+  <!-- ====== PWA MANIFEST (optional) ====== -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- ====== FAVICONS ====== -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+
+<body>
+  <!-- ==================== HEADER ==================== -->
+  <header>
+    <div class="header-main">
+      <div><div class="logo">TRUVANI</div><div class="logo-sub">Truth in Every Word</div></div>
+      <div class="header-controls">
+        <div class="search-box">
+          <input type="text" placeholder="Search..." id="searchInput" aria-label="Search news">
+          <button class="search-btn" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <i class="fa-solid fa-moon mode-toggle" id="modeToggle" aria-label="Toggle dark mode"></i>
+        <a href="quantum.html" class="quick-link-btn btn-ai"><i class="fa-solid fa-microchip"></i> AI</a>
+        <a href="contact.html" class="quick-link-btn btn-contact"><i class="fa-solid fa-phone"></i> Contact</a>
+        <a href="admin.html" class="quick-link-btn" style="background:var(--p);color:#fff"><i class="fa-solid fa-gear"></i> Admin</a>
+      </div>
+    </div>
+    <nav class="nav-bar" aria-label="Main navigation">
+      <div class="nav-content">
+        <a href="index.html">Home</a><a href="#">India</a><a href="#">World</a>
+        <a href="#">Business</a><a href="#">Tech</a><a href="#">Sports</a>
+        <a href="#">Health</a><a href="#">Opinion</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ==================== SKELETON LOADER ==================== -->
+  <div class="article-container">
+    <div id="article-content-area" aria-live="polite">
+      <div class="article-header"><h1 class="skeleton" style="height:40px;width:80%">&nbsp;</h1></div>
+      <div class="meta-info">
+        <span class="skeleton" style="height:16px;width:100px">&nbsp;</span>
+        <span class="skeleton" style="height:16px;width:80px">&nbsp;</span>
+        <span class="skeleton" style="height:16px;width:60px">&nbsp;</span>
+      </div>
+      <div class="article-image skeleton" style="height:400px">&nbsp;</div>
+      <div class="article-body">
+        <p class="skeleton" style="height:20px;width:100%">&nbsp;</p>
+        <p class="skeleton" style="height:20px;width:95%">&nbsp;</p>
+        <p class="skeleton" style="height:20px;width:98%">&nbsp;</p>
+      </div>
+      <div class="like-section">
+        <button class="like-button skeleton" disabled>&nbsp;</button>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="footer-bottom">© 2025 TRUVANI Global News Network.</div></footer>
+
+  <!-- ==================== FIREBASE v9 Compat (Fast) ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.firebasestorage.app",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+    });
+    const db = getFirestore(app);
+
+    let articleId = null;
+    const $ = s => document.querySelector(s);
+
+    // ====== LAZY LOAD IMAGES ======
+    const lazyImages = () => {
+      const imgs = document.querySelectorAll('img[loading="lazy"]');
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.srcset = img.dataset.srcset || '';
+            observer.unobserve(img);
+          }
+        });
+      });
+      imgs.forEach(img => observer.observe(img));
+    };
+
+    // ====== FETCH ARTICLE ======
+    async function loadArticle(id) {
+      const area = $('#article-content-area');
+      try {
+        const ref = doc(db, 'articles', id);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) throw new Error('Not found');
+
+        const d = snap.data();
+        updateDoc(ref, { views: increment(1) }); // fire-and-forget
+
+        document.title = `${d.title} | TRUVANI`;
+        area.innerHTML = `
+          <div class="article-header"><h1>${d.title}</h1></div>
+          <div class="meta-info">
+            <span><i class="fa-solid fa-calendar"></i> ${d.date || 'N/A'}</span>
+            <span><i class="fa-solid fa-user"></i> ${d.author || 'TRUVANI'}</span>
+            <span><i class="fa-solid fa-eye"></i> ${d.views ?? 0} Views</span>
+          </div>
+          <img data-src="${d.imageUrl || 'https://via.placeholder.com/900x500/eee/ccc?text=TRUVANI'}"
+               data-srcset="${d.imageUrl ? d.imageUrl + ' 1x, ' + d.imageUrl.replace(/\.[^/.]+$/, '@2x.$&') + ' 2x' : ''}"
+               alt="${d.title}" class="article-image" loading="lazy">
+          <div class="article-body"><p>${d.content.replace(/\\n/g, '<br>')}</p></div>
+          <div class="like-section">
+            <button class="like-button" id="like-btn" aria-label="Like this article">
+              <i class="fa-regular fa-heart"></i> <span>Like</span> (<span id="like-count">${d.likes ?? 0}</span>)
+            </button>
+          </div>
+        `;
+
+        articleId = id;
+        checkLiked(id);
+        $('#like-btn').addEventListener('click', handleLike);
+        lazyImages();
+
+        // Fade in
+        requestAnimationFrame(() => area.style.opacity = '1');
+      } catch (e) {
+        area.innerHTML = `<h1>Error: ${e.message}</h1>`;
+        area.style.opacity = '1';
+      }
+    }
+
+    // ====== LIKE SYSTEM ======
+    async function handleLike() {
+      if (!articleId) return;
+      const btn = $('#like-btn'), cnt = $('#like-count');
+      const key = `liked_${articleId}`;
+      if (localStorage.getItem(key)) return;
+
+      btn.disabled = true;
+      const cur = parseInt(cnt.textContent);
+      cnt.textContent = cur + 1;
+      btn.classList.add('liked');
+      btn.innerHTML = `<i class="fa-solid fa-heart"></i> <span>Liked!</span> (${cur + 1})`;
+      localStorage.setItem(key, 'true');
+
+      try {
+        await updateDoc(doc(db, 'articles', articleId), { likes: increment(1) });
+      } catch (e) { console.error(e); }
+    }
+
+    function checkLiked(id) {
+      const btn = $('#like-btn');
+      const key = `liked_${id}`;
+      if (localStorage.getItem(key)) {
+        btn.classList.add('liked');
+        btn.disabled = true;
+        const c = $('#like-count').textContent;
+        btn.innerHTML = `<i class="fa-solid fa-heart"></i> <span>Liked!</span> (${c})`;
+      }
+    }
+
+    // ====== DARK MODE ======
+    const toggle = $('#modeToggle');
+    if (localStorage.getItem('dark') === '1') document.body.classList.add('dark-mode');
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('dark', document.body.classList.contains('dark-mode') ? '1' : '0');
+    });
+
+    // ====== SEARCH (debounced) ======
+    let searchTimer;
+    $('#searchInput').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const q = $('#searchInput').value.trim();
+        if (q) alert(`Searching: ${q}`);
+      }, 500);
+    });
+
+    // ====== INIT ======
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (id) loadArticle(id);
+    else $('#article-content-area').innerHTML = '<h1>Missing article ID</h1>';
+
+    // ====== OPTIONAL: Register Service Worker ======
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+
+  <!-- Font Awesome (deferred) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js"></script>
+</body>
+</html>
