@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI AI - Quantum News Platform</title>
+    <style>
+        :root {
+            --primary-color: #e63946;
+            --ai-color: #00d4ff;
+            --neon-glow: 0 0 20px #00d4ff;
+            --dark-bg: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* AI Assistant */
+        .ai-assistant {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: var(--ai-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: var(--neon-glow);
+            z-index: 1000;
+            animation: float 3s ease-in-out infinite;
+            transition: all 0.3s;
+        }
+
+        .ai-assistant:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px var(--ai-color);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Voice Command */
+        .voice-search {
+            position: fixed;
+            top: 120px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 999;
+            border: 2px solid var(--ai-color);
+            box-shadow: var(--neon-glow);
+            backdrop-filter: blur(10px);
+        }
+
+        .voice-btn {
+            background: var(--ai-color);
+            color: black;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .voice-btn:hover {
+            background: #00b8e6;
+            transform: scale(1.05);
+        }
+
+        /* Advanced Header */
+        .cyber-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-bottom: 2px solid var(--ai-color);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 42px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-color), var(--ai-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        /* AI News Ticker */
+        .ai-ticker {
+            background: linear-gradient(90deg, transparent, var(--ai-color), transparent);
+            padding: 15px 0;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticker-content {
+            display: flex;
+            animation: tickerScroll 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .ticker-item {
+            padding: 0 40px;
+            font-weight: bold;
+            color: black;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* 3D News Grid */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .news-card-3d {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 0;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            perspective: 1000px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .news-card-3d:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.4);
+            border-color: var(--ai-color);
+        }
+
+        .news-card-3d img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .news-card-3d:hover img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Sentiment Analysis */
+        .sentiment-widget {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .sentiment-meter {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .sentiment-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00ff88);
+            transition: width 1s ease-in-out;
+            border-radius: 4px;
+        }
+
+        /* Blockchain Verification */
+        .blockchain-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: black;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 10px 0;
+            animation: blockchainGlow 2s infinite alternate;
+        }
+
+        @keyframes blockchainGlow {
+            from { box-shadow: 0 0 10px #00ff88; }
+            to { box-shadow: 0 0 20px #00ff88, 0 0 30px #00ff88; }
+        }
+
+        /* AI Features Panel */
+        .ai-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--ai-color);
+            border-radius: 20px;
+            padding: 30px;
+            z-index: 1001;
+            display: none;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.5);
+            min-width: 400px;
+        }
+
+        .ai-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .ai-feature-btn {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--ai-color);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .ai-feature-btn:hover {
+            background: var(--ai-color);
+            color: black;
+            transform: scale(1.05);
+        }
+
+        /* AR Experience Section */
+        .ar-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            margin: 40px 20px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ar-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: arShine 3s infinite;
+        }
+
+        @keyframes arShine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Quantum Loader */
+        .quantum-loader {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--ai-color), transparent);
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .quantum-loader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, white, transparent);
+            animation: quantumLoad 2s infinite;
+        }
+
+        @keyframes quantumLoad {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- AI Assistant -->
+    <div class="ai-assistant" onclick="toggleAIPanel()">
+        🤖
+    </div>
+
+    <!-- Voice Command -->
+    <div class="voice-search">
+        <h4>🎤 AI Voice Control</h4>
+        <button class="voice-btn" onclick="startVoiceSearch()">Start Voice Search</button>
+        <div id="voiceResult" style="margin-top: 10px; min-height: 20px;"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="cyber-header">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="logo">TRUVANI AI</div>
+                <div style="color: var(--ai-color); font-size: 14px; margin-top: -5px;">Quantum News Platform</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 25px; display: flex; align-items: center;">
+                    <input type="text" placeholder="🔍 AI Search..." style="background: none; border: none; color: white; outline: none; width: 250px;">
+                </div>
+                <button style="background: var(--ai-color); color: black; padding: 12px 25px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer;">
+                    ⚙️ Quantum Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- AI News Ticker -->
+    <div class="ai-ticker">
+        <div class="ticker-content">
+            <div class="ticker-item">🤖 AI ANALYSIS: Market trends predict 89% accuracy</div>
+            <div class="ticker-item">🔮 QUANTUM COMPUTING: Breaking news in tech</div>
+            <div class="ticker-item">🌐 BLOCKCHAIN: Verified news authentication</div>
+            <div class="ticker-item">🚀 AR EXPERIENCE: Launch immersive news</div>
+        </div>
+    </div>
+
+    <!-- Quantum Loader -->
+    <div class="quantum-loader"></div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Blockchain Verified Badge -->
+        <div style="text-align: center; margin: 30px 0;">
+            <div class="blockchain-badge">
+                🔗 BLOCKCHAIN VERIFIED • 100% AUTHENTIC CONTENT
+            </div>
+        </div>
+
+        <!-- 3D News Grid -->
+        <div class="news-grid">
+            <!-- News Card 1 -->
+            <div class="news-card-3d">
+                <img src="https://images.unsplash.com/photo-1586227740560-8cf2732c1531?w=400" alt="AI News">
+                <div class="card-content">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <span style="background: var(--ai-color); color: black; padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold;">AI PREDICTION</span>
+                        <div class="sentiment-meter" style="width: 100px;">
+                            <div class="sentiment-fill" style="width: 87%;"></div>
+                        </div>
+                    </div>
+                    <h3 style="margin-bottom: 10px; font-size: 20px;">Quantum Computing Breakthrough Revolutionizes AI Analysis</h3>
+                    <p style="color: #ccc; margin-bottom: 15px;">Scientists achieve unprecedented processing speeds using quantum algorithms for real-time news analysis.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--ai-color); font-size: 12px;">🔗 Blockchain Verified</span>
+                        <button class="ai-feature-btn" onclick="generateSummary()" style="padding: 8px 15px; font-size: 12px;">🤖 Summary</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News Card 2 -->
+            <div class="news-card-3d">
+                <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400" alt="Tech News">
+                <div class="card-content">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <span style="background: #ff4444; color: white; padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold;">BREAKING</span>
+                        <div class="sentiment-meter" style="width: 100px;">
+                            <div class="sentiment-fill" style="width: 45%;"></div>
+                        </div>
+                    </div>
+                    <h3 style="margin-bottom: 10px; font-size: 20px;">Neural Networks Achieve Human-Level Understanding of Complex Events</h3>
+                    <p style="color: #ccc; margin-bottom: 15px;">Advanced AI systems now demonstrate contextual understanding previously thought impossible for machines.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--ai-color); font-size: 12px;">🔗 Blockchain Verified</span>
+                        <button class="ai-feature-btn" onclick="analyzeSentiment()" style="padding: 8px 15px; font-size: 12px;">😊 Sentiment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AR Experience Section -->
+        <div class="ar-section">
+            <h2 style="margin-bottom: 15px; font-size: 32px;">🔮 Augmented Reality News</h2>
+            <p style="margin-bottom: 25px; font-size: 18px;">Experience news like never before with our immersive AR technology</p>
+            <button onclick="launchAR()" style="background: white; color: black; border: none; padding: 15px 30px; border-radius: 25px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                🚀 Launch AR Experience
+            </button>
+        </div>
+    </main>
+
+    <!-- AI Features Panel -->
+    <div class="ai-panel" id="aiPanel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--ai-color);">TRUVANI AI Assistant</h3>
+            <button onclick="closeAIPanel()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">✖</button>
+        </div>
+        
+        <div class="ai-features">
+            <button class="ai-feature-btn" onclick="generateSummary()">
+                📝 AI Summary
+            </button>
+            <button class="ai-feature-btn" onclick="translateArticle()">
+                🌐 Translate
+            </button>
+            <button class="ai-feature-btn" onclick="textToSpeech()">
+                🔊 Read Aloud
+            </button>
+            <button class="ai-feature-btn" onclick="analyzeSentiment()">
+                😊 Sentiment Analysis
+            </button>
+            <button class="ai-feature-btn" onclick="factCheck()">
+                ✅ Fact Check
+            </button>
+            <button class="ai-feature-btn" onclick="quantumAnalysis()">
+                🔮 Quantum Analysis
+            </button>
+        </div>
+        
+        <div class="sentiment-widget" style="margin-top: 20px;">
+            <h4>Real-time Sentiment Analysis</h4>
+            <div class="sentiment-meter">
+                <div class="sentiment-fill" id="sentimentFill" style="width: 65%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                <span>Negative</span>
+                <span>Neutral</span>
+                <span>Positive</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AI Assistant Functions
+        function toggleAIPanel() {
+            const panel = document.getElementById('aiPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function closeAIPanel() {
+            document.getElementById('aiPanel').style.display = 'none';
+        }
+
+        // Voice Search
+        function startVoiceSearch() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('voiceResult').innerHTML = 
+                        `You said: <strong>${transcript}</strong>`;
+                    processVoiceCommand(transcript);
+                };
+                
+                recognition.start();
+            } else {
+                alert("Voice search not supported in your browser");
+            }
+        }
+
+        // AI Features
+        function generateSummary() {
+            alert('🤖 AI Summary Generated!\n\nThis article discusses breakthrough advancements in quantum computing...');
+        }
+
+        function analyzeSentiment() {
+            const sentiment = Math.random() * 100;
+            document.getElementById('sentimentFill').style.width = sentiment + '%';
+            alert(`Sentiment Analysis: ${sentiment.toFixed(1)}% Positive`);
+        }
+
+        function quantumAnalysis() {
+            alert('🔮 Quantum analysis complete!\nNews credibility: 98.7%');
+        }
+
+        function launchAR() {
+            alert('🚀 Launching AR Experience...\n\nPoint your camera at news articles to view them in augmented reality!');
+        }
+
+        // Process Voice Commands
+        function processVoiceCommand(command) {
+            command = command.toLowerCase();
+            if (command.includes('summary')) {
+                generateSummary();
+            } else if (command.includes('sentiment')) {
+                analyzeSentiment();
+            } else if (command.includes('ar') || command.includes('augmented')) {
+                launchAR();
+            } else {
+                alert(`AI: I'll help you with "${command}"`);
+            }
+        }
+    </script>
+</body>
+</html>
