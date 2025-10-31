@@ -4,7 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Truvani</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        /* --------------------- */
+        /* 1. Root Variables */
+        /* --------------------- */
+        :root {
+            --primary-color: #e63946; /* Truvani Red */
+            --secondary-color: #d62839; /* Darker Red */
+            --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --white: #ffffff;
+            --dark-text: #333;
+        }
+
+        /* --------------------- */
+        /* 2. Base Styles & Layout */
+        /* --------------------- */
         * {
             margin: 0;
             padding: 0;
@@ -13,7 +28,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--background-gradient);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -24,7 +39,7 @@
         .contact-container {
             max-width: 1000px;
             width: 100%;
-            background: white;
+            background: var(--white);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
@@ -34,19 +49,16 @@
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --------------------- */
+        /* 3. Info Panel (Red Side) */
+        /* --------------------- */
         .contact-info {
-            background: linear-gradient(135deg, #e63946, #d62839);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
             padding: 50px 40px;
             display: flex;
             flex-direction: column;
@@ -79,7 +91,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px; /* Font Awesome size */
         }
 
         .info-text h4 {
@@ -106,38 +118,43 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--white);
             text-decoration: none;
             font-size: 20px;
             transition: all 0.3s;
         }
 
         .social-links a:hover {
-            background: white;
-            color: #e63946;
+            background: var(--white);
+            color: var(--primary-color);
             transform: translateY(-3px);
         }
 
+        /* --------------------- */
+        /* 4. Form Panel (White Side) */
+        /* --------------------- */
         .contact-form-section {
             padding: 50px 40px;
         }
 
         .back-btn {
-            display: inline-block;
-            color: #e63946;
+            display: inline-flex; /* Icon & text alignment */
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
             text-decoration: none;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-weight: bold;
             transition: all 0.3s;
         }
 
         .back-btn:hover {
-            color: #d62839;
+            color: var(--secondary-color);
             transform: translateX(-5px);
         }
 
         .contact-form-section h2 {
-            color: #333;
+            color: var(--dark-text);
             margin-bottom: 30px;
             font-size: 28px;
         }
@@ -149,7 +166,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--dark-text);
             font-weight: 500;
         }
 
@@ -169,7 +186,7 @@
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #e63946;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
         }
 
@@ -181,8 +198,8 @@
         .submit-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #e63946, #d62839);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
             border: none;
             border-radius: 8px;
             font-size: 16px;
@@ -196,20 +213,15 @@
             box-shadow: 0 10px 20px rgba(230, 57, 70, 0.3);
         }
 
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
+        /* --------------------- */
+        /* 5. Responsive Design */
+        /* --------------------- */
         @media (max-width: 768px) {
             .contact-container {
                 grid-template-columns: 1fr;
             }
 
-            .contact-info {
-                padding: 30px 20px;
-            }
-
-            .contact-form-section {
+            .contact-info, .contact-form-section {
                 padding: 30px 20px;
             }
         }
@@ -222,15 +234,15 @@
             <p>Have a question or want to work with us? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
 
             <div class="info-item">
-                <div class="info-icon">📍</div>
+                <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
                 <div class="info-text">
                     <h4>Address</h4>
-                    <p>New Delhi, India</p>
+                    <p>Global HQ, New Delhi, India</p>
                 </div>
             </div>
 
             <div class="info-item">
-                <div class="info-icon">📧</div>
+                <div class="info-icon"><i class="fas fa-envelope"></i></div>
                 <div class="info-text">
                     <h4>Email</h4>
                     <p>nitinchoudharyw55@gmail.com</p>
@@ -238,7 +250,7 @@
             </div>
 
             <div class="info-item">
-                <div class="info-icon">📱</div>
+                <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
                 <div class="info-text">
                     <h4>Phone</h4>
                     <p>+91 1800-XXX-XXXX</p>
@@ -246,24 +258,26 @@
             </div>
 
             <div class="info-item">
-                <div class="info-icon">⏰</div>
+                <div class="info-icon"><i class="fas fa-clock"></i></div>
                 <div class="info-text">
                     <h4>Working Hours</h4>
-                    <p>Mon - Fri: 9:00 AM - 6:00 PM</p>
+                    <p>Mon - Fri: 9:00 AM - 6:00 PM (IST)</p>
                 </div>
             </div>
 
             <div class="social-links">
-                <a href="#" title="Facebook">📘</a>
-                <a href="#" title="Twitter">🐦</a>
-                <a href="#" title="Instagram">📸</a>
-                <a href="#" title="LinkedIn">💼</a>
-                <a href="#" title="YouTube">📺</a>
+                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
             </div>
         </div>
 
         <div class="contact-form-section">
-            <a href="index.html" class="back-btn">← Back to Home</a>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
             <h2>Send us a Message</h2>
 
             <form id="contactForm" onsubmit="submitForm(event)">
@@ -308,20 +322,15 @@
             const name = formData.get('name');
             const email = formData.get('email');
             const subject = formData.get('subject');
-            const message = formData.get('message');
+            // const message = formData.get('message');
 
-            // Show success message
+            // Show success message (using console.log as a placeholder for backend submission)
+            console.log(`[Form Submission] Name: ${name}, Email: ${email}, Subject: ${subject}`);
             alert(`✅ Message Sent Successfully!\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nThank you for contacting us! We'll get back to you soon.`);
             
             // Reset form
             e.target.reset();
         }
-
-        // Add animation to form elements
-        const formInputs = document.querySelectorAll('input, textarea, select');
-        formInputs.forEach((input, index) => {
-            input.style.animation = `slideUp 0.6s ease ${index * 0.1}s backwards`;
-        });
     </script>
 </body>
 </html>
