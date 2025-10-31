@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI Admin Panel - AI Console</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- === FIREBASE SDKs (REQUIRED) === -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    
+    <style>
+        /* --- Root Variables --- */
+        :root {
+            --primary-color: #e63946; 
+            --secondary-color: #1a1a1a; 
+            --accent-color: #00d4ff; /* AI Blue */
+            --success-color: #28a745;
+            --light-bg: #ffffff;
+            --dark-bg: #0a0a0a;
+            --text-color: #333;
+            --card-bg: #f5f5f5;
+            --border-color: #eee;
+        }
+        body.dark-mode {
+            --light-bg: #1a1a1a;
+            --dark-bg: #000000;
+            --text-color: #f0f0f0;
+            --card-bg: #222222;
+            --border-color: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', monospace; background: var(--dark-bg); color: var(--text-color); transition: background 0.5s, color 0.5s; overflow-x: hidden; }
+        
+        /* --- Login Screen (Hidden after login) --- */
+        #login-container { display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; background: var(--light-bg); }
+        #login-form { background: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        #login-error { color: var(--primary-color); margin-bottom: 15px; text-align: center; }
+
+        /* --- Main App (Hidden before login) --- */
+        #app-container { display: none; }
+        
+        /* --- Header & Controls --- */
+        .admin-header { background: var(--light-bg); border-bottom: 3px solid var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; position: sticky; top: 0; z-index: 100; transition: background 0.5s; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .admin-logo { font-size: 28px; font-weight: bold; color: var(--primary-color); letter-spacing: 1px; }
+        .mode-toggle { cursor: pointer; font-size: 20px; color: var(--text-color); margin-right: 15px; transition: color 0.3s; }
+        #logout-btn { background: none; border: none; color: var(--primary-color); font-size: 14px; font-weight: bold; cursor: pointer; }
+        
+        /* --- Main Content --- */
+        .admin-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+        .admin-panel { background: var(--light-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; transition: background 0.5s; }
+        .panel-header { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--accent-color); }
+        .panel-title { font-size: 22px; color: var(--accent-color); font-weight: bold; }
+        
+        /* --- Forms & Buttons --- */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-color); }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-size: 14px; transition: all 0.3s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 5px rgba(230, 57, 70, 0.5); }
+        .form-textarea { min-height: 200px; resize: vertical; }
+        .admin-btn { padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #d62839; }
+        
+        /* AI Button Style */
+        .btn-ai { background: var(--accent-color); color: #1a1a1a; margin-top: 10px; }
+        .btn-ai:disabled { background: #aaa; cursor: not-allowed; }
+
+        /* Toast Notification (for feedback) */
+        #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+        .toast { background: rgba(0, 0, 0, 0.9); color: white; padding: 15px 25px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); min-width: 300px; opacity: 0; transform: translateX(100%); transition: all 0.5s ease-out; }
+        .toast.success { border-left: 5px solid var(--success-color); }
+        .toast.error { border-left: 5px solid var(--primary-color); }
+        .toast.info { border-left: 5px solid var(--accent-color); }
+        .toast-show { opacity: 1; transform: translateX(0); }
+        .toast-title { font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+
+    <!-- 1. Login Screen -->
+    <div id="login-container">
+        <form id="login-form">
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">TRUVANI Admin Login</h2>
+            <div id="login-error"></div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="login-password" required>
+            </div>
+            <button type="submit" class="admin-btn btn-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- 2. Main App (Hidden until login) -->
+    <div id="app-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div>
+                    <div class="admin-logo">TRUVANI AI Console</div>
+                    <div style="color: #666; font-size: 12px; margin-top: 5px;" id="admin-email">Welcome, ...</div>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <i class="fa-solid fa-moon mode-toggle" id="modeToggle"></i>
+                    <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold; margin: 0 20px;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Site
+                    </a>
+                    <button id="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="admin-container">
+            <div class="admin-grid">
+                <!-- Create News Panel -->
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><i class="fa-solid fa-file-circle-plus"></i> CREATE NEW ARTICLE</h2>
+                    </div>
+
+                    <form id="newsForm">
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-align-left"></i> 1. Article Content</label>
+                            <textarea class="form-textarea" id="newsContent" placeholder="Write your full article content here first..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-heading"></i> 2. Article Title</label>
+                            <input type="text" class="form-input" id="newsTitle" placeholder="Enter headline, or let AI generate it" required>
+                            
+                            <!-- AI GENERATE BUTTON -->
+                            <button type="button" class="admin-btn btn-ai" id="generateTitleBtn">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Title with AI
+                            </button>
+                        </div>
+                        
+                        <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
+
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-tags"></i> 3. Category</label>
+                            <select class="form-select" id="newsCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Politics">Politics</option>
+                                <option value="Business">Business</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Health">Health</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-image"></i> 4. Featured Image URL</label>
+                            <input type="text" class="form-input" id="imageURL" placeholder="Paste image URL here (e.g., from Unsplash)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-user"></i> 5. Author</label>
+                            <input type="text" class="form-input" id="newsAuthor" value="Nitin Choudhary" required>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <button type="submit" class="admin-btn btn-primary" id="publishBtn">
+                                <i class="fa-solid fa-paper-plane"></i> PUBLISH TO FIREBASE
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *******************************************************************
+        // 1. FIREBASE CONFIGURATION (LIVE KEYS ADDED)
+        // *******************************************************************
+        const firebaseConfig = {
+          apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+          authDomain: "truvani-news-5ac15.firebaseapp.com",
+          projectId: "truvani-news-5ac15",
+          storageBucket: "truvani-news-5ac15.firebasestorage.app",
+          messagingSenderId: "742142167141",
+          appId: "1:742142167141:web:c2c116f5e50a574de85e8c",
+          measurementId: "G-P3T36GZQV8"
+        };
+
+        // *******************************************************************
+        // 2. GEMINI AI CONFIGURATION (*** LIVE KEY ADDED ***)
+        // *******************************************************************
+        // This is your Firebase key, which we enabled for the Gemini API
+        const GEMINI_API_KEY = "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A";
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Get Element references
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        const newsForm = document.getElementById('newsForm');
+        const generateTitleBtn = document.getElementById('generateTitleBtn');
+        const newsTitleInput = document.getElementById('newsTitle');
+        const newsContentInput = document.getElementById('newsContent');
+        const publishBtn = document.getElementById('publishBtn');
+        
+        // *******************************************************************
+        // 3. AUTHENTICATION (LOGIN/LOGOUT)
+        // *******************************************************************
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    loginContainer.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    document.getElementById('admin-email').textContent = `Welcome, ${userCredential.user.email}`;
+                })
+                .catch((error) => {
+                    loginError.textContent = `Error: ${error.message}`;
+                });
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                appContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+            });
+        });
+
+        // Check auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                document.getElementById('admin-email').textContent = `Welcome, ${user.email}`;
+            } else {
+                appContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+            }
+        });
+        
+        // *******************************************************************
+        // 4. NEW: GEMINI AI FUNCTION (Generate Title)
+        // *******************************************************************
+        
+        generateTitleBtn.addEventListener('click', async () => {
+            const content = newsContentInput.value;
+            
+            if (content.length < 50) {
+                showToast("Error", "Please write at least 50 characters of content before using AI.", "error");
+                return;
+            }
+            
+            generateTitleBtn.disabled = true;
+            generateTitleBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+
+            const prompt = `You are an expert news editor. Write a short, catchy, professional headline (maximum 10 words) for the following news article. Do not include any quotation marks in your response. The article is: \n\n"${content}"`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API Error Data:", errorData);
+                    // Check if API is not enabled
+                    if(errorData.error && errorData.error.status === "PERMISSION_DENIED") {
+                         showToast("AI Error", "The 'Generative Language API' is not enabled. Please enable it in Google Cloud Console.", "error");
+                    } else {
+                         showToast("AI Error", `API Error: ${errorData.error.message}`, "error");
+                    }
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const generatedTitle = result.candidates[0].content.parts[0].text.trim();
+                
+                newsTitleInput.value = generatedTitle.replace(/["']/g, ''); 
+                showToast("AI Success", "New title has been generated!", "success");
+
+            } catch (error) {
+                console.error("Gemini AI Error:", error);
+                if(!error.message.includes("API Error")) {
+                    showToast("AI Error", "Could not generate title. Check API key and console.", "error");
+                }
+            }
+
+            generateTitleBtn.disabled = false;
+            generateTitleBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Title with AI';
+        });
+
+        // *******************************************************************
+        // 5. PUBLISH TO FIREBASE
+        // *******************************************************************
+        
+        newsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            publishBtn.disabled = true;
+            publishBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...';
+            
+            // ... (rest of the publish code)
+            const title = newsTitleInput.value;
+            const category = document.getElementById('newsCategory').value;
+            const content = newsContentInput.value;
+            const author = document.getElementById('newsAuthor').value;
+            const imageUrl = document.getElementById('imageURL').value;
+            
+            const currentDate = new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+            const timestamp = firebase.firestore.FieldValue.serverTimestamp(); 
+
+            try {
+                await db.collection('articles').add({
+                    title: title, category: category, content: content,
+                    imageUrl: imageUrl || 'https://via.placeholder.com/800x400.png?text=TRUVANI+News',
+                    author: author, date: currentDate, timestamp: timestamp, views: 0
+                });
+
+                showToast('🚀 PUBLISH SUCCESS', `Article "${title}" is live!`, 'success');
+                this.reset();
+                document.getElementById('newsAuthor').value = 'Nitin Choudhary';
+                
+            } catch (error) {
+                console.error("Firebase Publish Error:", error);
+                showToast('❌ PUBLISH FAILED', `Article not saved. Check rules/console.`, 'error');
+            }
+            
+            publishBtn.disabled = false;
+            publishBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PUBLISH TO FIREBASE';
+        });
+        
+        // *******************************************************************
+        // 6. UTILITY FUNCTIONS (Toast, Dark Mode)
+        // *******************************************************************
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return; // safety check
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<div class="toast-title">${title}</div><div>${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('toast-show'); }, 10);
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                setTimeout(() => { if (container.contains(toast)) { container.removeChild(toast); } }, 500); 
+            }, 4000);
+        }
+
+        const modeToggle = document.getElementById('modeToggle');
+        if(modeToggle) {
+            modeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const icon = modeToggle.classList.contains('fa-moon') ? 'fa-sun' : 'fa-moon';
+                modeToggle.classList.remove('fa-moon', 'fa-sun');
+                modeToggle.classList.add(icon);
+                localStorage.setItem('adminMode', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            });
+        }
+        if (localStorage.getItem('adminMode') === 'dark') {
+            document.body.classList.add('dark-mode');
+            if(modeToggle) {
+                modeToggle.classList.remove('fa-moon');
+                modeToggle.classList.add('fa-sun');
+            }
+        }
+    </script>
+</body>
+</html>
+
+
