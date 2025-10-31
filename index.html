@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI | The Advanced Global News Network</title>
+    
+    <!-- === PERFORMANCE: Preconnect === -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
+    <meta name="google-site-verification" content="Y9MXg-8nZFJG7mFrJw32joXU_CwG7gqCJM787sRgQC4" />
+
+    <style>
+        :root {
+            --primary-color: #e63946; 
+            --secondary-color: #1a1a1a; 
+            --accent-color: #00d4ff; 
+            --light-bg: #ffffff;
+            --text-color: #333;
+            --card-bg: #f5f5f5;
+            --border-color: #eee;
+            --politics-color: #e63946;
+            --business-color: #28a745;
+            --technology-color: #007bff;
+            --sports-color: #ffc107;
+            --health-color: #17a2b8;
+            --entertainment-color: #9c27b0;
+            --world-color: #3f51b5;
+            --science-color: #ff9800;
+            --lifestyle-color: #e91e63;
+        }
+        body.dark-mode {
+            --light-bg: #1a1a1a;
+            --text-color: #f0f0f0;
+            --card-bg: #222222;
+            --border-color: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--card-bg); 
+            color: var(--text-color); 
+            transition: background 0.3s, color 0.3s; 
+        }
+        a { text-decoration: none; color: var(--primary-color); }
+        
+        /* Header */
+        .top-bar { background: var(--secondary-color); color: #ccc; padding: 8px 0; font-size: 13px;}
+        .top-bar-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--light-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .header-main { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .logo { 
+            font-size: 36px; 
+            font-weight: 900; 
+            background: linear-gradient(45deg, var(--primary-color), #c91828); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .logo-sub { font-size: 12px; color: var(--text-color); opacity: 0.7; }
+        .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .search-box { display: flex; background: var(--card-bg); border-radius: 25px; border: 1px solid var(--border-color); overflow: hidden; }
+        .search-box input { border: none; background: none; outline: none; padding: 10px 15px; width: 180px; color: var(--text-color); }
+        .search-btn { background: var(--primary-color); color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        .mode-toggle { cursor: pointer; font-size: 20px; color: var(--text-color); padding: 10px; }
+        .quick-link-btn { padding: 10px 15px; border-radius: 5px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 14px; }
+        .btn-ai { background: var(--accent-color); color: black; }
+        .btn-contact { background: #343a40; color: white; }
+        .nav-bar { background: var(--primary-color); }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-around; flex-wrap: wrap; }
+        .nav-content a { color: white; padding: 15px 20px; font-weight: 500; transition: background 0.3s; }
+        .nav-content a:hover { background: #d62839; }
+
+        /* Loading State */
+        .loading-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .spinner { 
+            border: 4px solid #f3f3f3; 
+            border-top: 4px solid var(--primary-color); 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Main Content */
+        .breaking-news { background: #fff3cd; color: var(--text-color); padding: 12px 20px; margin: 20px auto; max-width: 1200px; border-left: 4px solid #ffc107; }
+        .breaking-news span.label { color: var(--primary-color); font-weight: bold; margin-right: 15px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .main-content { display: flex; flex-direction: column; gap: 25px; }
+        .hero-news, .news-card { 
+            background: var(--light-bg); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            transition: transform 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+        .news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .hero-news img, .news-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .hero-news img { height: 400px; }
+        .hero-content { padding: 30px; }
+        .category-tag { 
+            color: white; 
+            padding: 6px 15px; 
+            border-radius: 5px; 
+            font-size: 13px; 
+            display: inline-block; 
+            margin-bottom: 15px; 
+            background: #6c757d;
+        }
+        .category-tag.politics { background: var(--politics-color); }
+        .category-tag.business { background: var(--business-color); }
+        .category-tag.technology { background: var(--technology-color); }
+        .category-tag.sports { background: var(--sports-color); color: #1a1a1a; }
+        .category-tag.health { background: var(--health-color); }
+        .category-tag.entertainment { background: var(--entertainment-color); }
+        .category-tag.world { background: var(--world-color); }
+        .category-tag.science { background: var(--science-color); }
+        .category-tag.lifestyle { background: var(--lifestyle-color); }
+        .hero-content h1 { font-size: 32px; margin: 10px 0; line-height: 1.3; }
+        .hero-content p { opacity: 0.8; }
+        .meta-info { color: #666; font-size: 14px; margin: 15px 0; display: flex; gap: 15px; flex-wrap: wrap; }
+        .news-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .news-card-content { padding: 20px; }
+
+        /* Sidebar & Footer */
+        .sidebar { display: flex; flex-direction: column; gap: 25px; }
+        .sidebar-section { background: var(--light-bg); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .sidebar-section h2 { color: var(--primary-color); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid var(--primary-color); }
+        footer { background: var(--secondary-color); color: white; padding: 50px 20px; margin-top: 50px; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+        .footer-section h3 { color: var(--primary-color); margin-bottom: 20px; }
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { padding: 8px 0; }
+        .footer-section ul li a { color: #aaa; }
+        .social-icons a { font-size: 20px; margin-right: 15px; color: #aaa; }
+        .footer-bottom { text-align: center; padding-top: 30px; margin-top: 30px; border-top: 1px solid #333; color: #aaa; }
+        
+        @media (max-width: 992px) { 
+            .container { grid-template-columns: 1fr; } 
+            .footer-content { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) { 
+            .news-grid { grid-template-columns: 1fr; } 
+            .top-bar-content { flex-direction: column; }
+            .footer-content { grid-template-columns: 1fr; }
+            .logo { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="date-time"><span id="currentDate"></span> | <span id="currentTime"></span></div>
+            <div>📧 nitinchoudharyw55@gmail.com | 🌐 Global Network</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-main">
+            <div>
+                <div class="logo">TRUVANI</div>
+                <div class="logo-sub">Truth in Every Word</div>
+            </div>
+            <div class="header-controls">
+                <div class="search-box">
+                    <input type="text" placeholder="Search news..." id="searchInput">
+                    <button class="search-btn" onclick="performSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+                <i class="fa-solid fa-moon mode-toggle" id="modeToggle"></i>
+                <a href="#" class="quick-link-btn btn-ai"><i class="fa-solid fa-microchip"></i> AI</a>
+                <a href="#" class="quick-link-btn btn-contact"><i class="fa-solid fa-phone"></i> Contact</a>
+            </div>
+        </div>
+        <nav class="nav-bar">
+            <div class="nav-content">
+                <a href="#">Home</a>
+                <a href="#">India</a>
+                <a href="#">World</a>
+                <a href="#">Business</a>
+                <a href="#">Technology</a>
+                <a href="#">Sports</a>
+                <a href="#">Health</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="breaking-news">
+        <span class="label">🔴 BREAKING:</span>
+        <span id="breakingNewsText">Welcome to TRUVANI - Real-time Global News</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- Hero News -->
+            <div class="hero-news" id="heroNews" style="animation-delay: 0.1s;">
+                <a href="#">
+                    <img src="https://via.placeholder.com/1200x400.png?text=Loading..." alt="News">
+                    <div class="hero-content">
+                        <span class="category-tag">LOADING</span>
+                        <h1>Fetching Latest Headlines...</h1>
+                        <div class="meta-info"><span>Loading...</span></div>
+                        <p>Please wait while we load the latest news...</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- News Grid -->
+            <div class="news-grid" id="newsGrid"></div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h2>🔥 Trending Now</h2>
+                <p style="color: #888;">Loading trending topics...</p>
+            </div>
+            <div class="sidebar-section">
+                <h2>📰 Latest Updates</h2>
+                <p style="color: #888;">Stay tuned for updates...</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About TRUVANI</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Technology</h3>
+                <ul>
+                    <li><a href="#">AI & Robotics</a></li>
+                    <li><a href="#">Cyber Security</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 TRUVANI Global News Network. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Wait for Firebase to load
+        let db;
+        
+        function initFirebase() {
+            if (typeof firebase === 'undefined') {
+                console.log('Waiting for Firebase...');
+                setTimeout(initFirebase, 100);
+                return;
+            }
+
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+                authDomain: "truvani-news-5ac15.firebaseapp.com",
+                projectId: "truvani-news-5ac15",
+                storageBucket: "truvani-news-5ac15.firebasestorage.app",
+                messagingSenderId: "742142167141",
+                appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+
+            // Enable Persistence (OPTIONAL - improves speed)
+            db.enablePersistence().catch(err => {
+                console.log('Persistence:', err.code);
+            });
+            
+            // Now fetch news
+            console.log('Firebase initialized successfully!');
+            fetchNews();
+        }
+
+        // Fetch and Display News
+        async function fetchNews() {
+            try {
+                const snapshot = await db.collection('articles')
+                    .orderBy('timestamp', 'desc')
+                    .limit(5)
+                    .get();
+
+                if (snapshot.empty) {
+                    document.getElementById('heroNews').innerHTML = 
+                        '<div class="hero-content"><h1>No articles found. Please add articles via Admin Panel.</h1></div>';
+                    hideLoading();
+                    return;
+                }
+
+                const articles = [];
+                snapshot.forEach(doc => articles.push({id: doc.id, ...doc.data()}));
+
+                renderHero(articles[0]);
+                renderGrid(articles.slice(1));
+                hideLoading();
+
+            } catch (error) {
+                console.error('Firebase Error:', error);
+                document.getElementById('heroNews').innerHTML = 
+                    '<div class="hero-content"><h1>⚠️ Error loading articles. Check console for details.</h1></div>';
+                hideLoading();
+            }
+        }
+
+        function getCategoryClass(cat) {
+            if (!cat) return '';
+            const c = cat.toLowerCase();
+            return ['technology','business','sports','health','politics','entertainment','world','science','lifestyle'].includes(c) ? c : '';
+        }
+
+        function renderHero(article) {
+            const cat = getCategoryClass(article.category);
+            document.getElementById('heroNews').innerHTML = `
+                <a href="article.html?id=${article.id}">
+                    <img src="${article.imageUrl || 'https://via.placeholder.com/1200x400'}" alt="${article.title}" loading="eager">
+                    <div class="hero-content">
+                        <span class="category-tag ${cat}">${(article.category || 'NEWS').toUpperCase()}</span>
+                        <h1>${article.title}</h1>
+                        <div class="meta-info">
+                            <span><i class="fa-solid fa-calendar"></i> ${article.date || 'Today'}</span>
+                            <span><i class="fa-solid fa-user"></i> ${article.author || 'TRUVANI'}</span>
+                        </div>
+                        <p>${(article.content || '').substring(0, 200)}...</p>
+                    </div>
+                </a>
+            `;
+        }
+
+        function renderGrid(articles) {
+            const grid = document.getElementById('newsGrid');
+            grid.innerHTML = '';
+            articles.forEach((article, i) => {
+                const cat = getCategoryClass(article.category);
+                const card = document.createElement('div');
+                card.className = 'news-card';
+                card.style.animationDelay = `${0.2 + i * 0.1}s`;
+                card.innerHTML = `
+                    <a href="article.html?id=${article.id}">
+                        <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" alt="${article.title}" loading="lazy">
+                        <div class="news-card-content">
+                            <span class="category-tag ${cat}">${(article.category || 'NEWS').toUpperCase()}</span>
+                            <h3>${article.title}</h3>
+                            <div class="meta-info">
+                                <span><i class="fa-regular fa-clock"></i> ${article.date || 'Today'}</span>
+                            </div>
+                            <p>${(article.content || '').substring(0, 100)}...</p>
+                        </div>
+                    </a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // Utilities
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = 
+                now.toLocaleDateString('en-IN', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-IN');
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) alert(`Search: ${query}`);
+        }
+
+        // Dark Mode
+        document.getElementById('modeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            this.classList.toggle('fa-moon');
+            this.classList.toggle('fa-sun');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        });
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('modeToggle').classList.replace('fa-moon', 'fa-sun');
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // Initialize
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        initFirebase(); // Start Firebase initialization
+    </script>
+</body>
+</html>
