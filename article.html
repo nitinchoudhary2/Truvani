@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title will be set by JavaScript -->
+    <title>Loading Article... | TRUVANI</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- === FIREBASE SDKs (REQUIRED) === -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
+    <style>
+        /* --- 1. Root Variables & Reset --- */
+        :root {
+            --primary-color: #e63946; 
+            --secondary-color: #1a1a1a; 
+            --accent-color: #00d4ff; 
+            --light-bg: #ffffff;
+            --dark-bg: #0a0a0a;
+            --text-color: #333;
+            --card-bg: #f5f5f5;
+            --border-color: #eee;
+        }
+        body.dark-mode {
+            --light-bg: #1a1a1a;
+            --dark-bg: #000000;
+            --text-color: #f0f0f0;
+            --card-bg: #222222;
+            --border-color: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--card-bg); color: var(--text-color); transition: background 0.5s, color 0.5s; overflow-x: hidden; }
+        a { text-decoration: none; color: var(--primary-color); }
+        
+        /* --- 2. Header & Navigation (Copied from index.html) --- */
+        header { background: var(--light-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .header-main { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 36px; font-weight: 900; color: var(--primary-color); letter-spacing: 2px; }
+        .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .search-box { display: flex; align-items: center; background: var(--card-bg); border-radius: 25px; border: 1px solid var(--border-color); }
+        .search-box input { border: none; background: none; outline: none; padding: 10px 15px; width: 180px; color: var(--text-color); }
+        .search-btn { background: var(--primary-color); color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        .mode-toggle { cursor: pointer; font-size: 20px; color: var(--text-color); padding: 10px; border-radius: 50%; }
+        .quick-link-btn { padding: 10px 15px; border-radius: 5px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-size: 14px; }
+        .btn-ai { background: var(--accent-color); color: black; }
+        .btn-contact { background: #343a40; color: white; }
+        .nav-bar { background: var(--primary-color); }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; }
+        .nav-content a { color: white; text-decoration: none; padding: 15px 20px; display: block; font-weight: 500; }
+
+        /* --- 3. NEW: Article Content Area --- */
+        .article-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 40px;
+            background: var(--light-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .article-header h1 {
+            font-size: 36px;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .article-header .category-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .article-header .meta-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        .article-image {
+            width: 100%;
+            height: auto;
+            max-height: 450px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .article-body {
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+        /* Make <p> tags inside article body have space */
+        .article-body p {
+            margin-bottom: 25px;
+        }
+        
+        /* --- 4. Footer & Responsive --- */
+        footer { background: var(--secondary-color); color: white; padding: 50px 20px; margin-top: 50px; }
+        .footer-bottom { text-align: center; padding-top: 30px; margin-top: 30px; border-top: 1px solid #333; color: #aaa; }
+        @media (max-width: 768px) {
+            .article-container { padding: 20px; margin: 20px 10px; }
+            .article-header h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (Same as index.html) -->
+    <header>
+        <div class="header-main">
+            <div>
+                <div class="logo">TRUVANI</div>
+                <div class="logo-sub">Truth in Every Word</div>
+            </div>
+            <div class="header-controls">
+                <!-- (Controls omitted for brevity, but should be same as index.html) -->
+                <i class="fa-solid fa-moon mode-toggle" id="modeToggle"></i>
+                <a href="index.html" class="quick-link-btn btn-contact"><i class="fa-solid fa-home"></i> Home</a>
+                <a href="admin.html" class="quick-link-btn" style="background: var(--primary-color); color: white;"><i class="fa-solid fa-gear"></i> Admin</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Article Content (Will be filled by JavaScript) -->
+    <main class="article-container">
+        <div class="article-header">
+            <span class="category-tag" id="article-category">LOADING...</span>
+            <h1 id="article-title">Fetching article from database...</h1>
+            <div class="meta-info" id="article-meta">
+                <span><i class="fa-solid fa-calendar"></i> --</span>
+                <span><i class="fa-solid fa-user"></i> --</span>
+            </div>
+        </div>
+        <img src="https://via.placeholder.com/800x400.png?text=Loading+Image..." alt="Loading" id="article-image" class="article-image">
+        <div class="article-body" id="article-content">
+            <p>Please wait while the full article content is being loaded from the TRUVANI database...</p>
+        </div>
+    </main>
+
+    <!-- Footer (Same as index.html) -->
+    <footer>
+        <div class="footer-bottom">
+            <p>&copy; 2025 TRUVANI Global News Network. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // *******************************************************************
+        // 1. FIREBASE CONFIGURATION (LIVE KEYS ADDED)
+        // *******************************************************************
+        const firebaseConfig = {
+          apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+          authDomain: "truvani-news-5ac15.firebaseapp.com",
+          projectId: "truvani-news-5ac15",
+          storageBucket: "truvani-news-5ac15.firebasestorage.app",
+          messagingSenderId: "742142167141",
+          appId: "1:742142167141:web:c2c116f5e50a574de85e8c",
+          measurementId: "G-P3T36GZQV8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // *******************************************************************
+        // 2. FETCH AND RENDER SINGLE ARTICLE
+        // *******************************************************************
+        
+        // This function gets the ID from the URL (e.g., ...article.html?id=ABCDEFG)
+        function getArticleIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id'); // Gets the value of 'id'
+        }
+
+        // This function fetches the specific article from Firebase
+        async function fetchAndRenderArticle() {
+            const articleId = getArticleIdFromURL();
+            
+            if (!articleId) {
+                document.getElementById('article-title').textContent = "Error: Article ID not found.";
+                document.getElementById('article-content').textContent = "Please return to the homepage and select an article.";
+                return;
+            }
+
+            try {
+                // Get the single document from the 'articles' collection using its ID
+                const docRef = db.collection('articles').doc(articleId);
+                const doc = await docRef.get();
+
+                if (doc.exists) {
+                    const article = doc.data();
+                    
+                    // Fill the HTML with the data
+                    document.title = article.title + " | TRUVANI"; // Set Browser Tab Title
+                    document.getElementById('article-category').textContent = article.category.toUpperCase();
+                    document.getElementById('article-title').textContent = article.title;
+                    document.getElementById('article-meta').innerHTML = `
+                        <span><i class="fa-solid fa-calendar"></i> ${article.date || 'N/A'}</span>
+                        <span><i class="fa-solid fa-user"></i> ${article.author || 'TRUVANI Desk'}</span>
+                    `;
+                    document.getElementById('article-image').src = article.imageUrl || 'https://via.placeholder.com/800x400.png?text=TRUVANI';
+                    
+                    // Format content: replace \n (newline) with <br> for paragraphs
+                    const formattedContent = article.content.replace(/\n/g, '<br><br>');
+                    document.getElementById('article-content').innerHTML = formattedContent;
+
+                } else {
+                    // Document does not exist
+                    document.getElementById('article-title').textContent = "Error: Article Not Found";
+                    document.getElementById('article-content').textContent = "The requested article does not exist in our database.";
+                }
+            } catch (error) {
+                console.error("Error fetching article:", error);
+                document.getElementById('article-title').textContent = "Error: Could not connect to database.";
+            }
+        }
+
+        // *******************************************************************
+        // 3. UTILITY FUNCTIONS (Dark Mode)
+        // *******************************************************************
+        const modeToggle = document.getElementById('modeToggle');
+        if(modeToggle) {
+            modeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                // (Add dark mode toggle logic here if needed)
+            });
+        }
+        // (Add logic to check localStorage for dark mode)
+
+        // Run the fetch function when the page loads
+        window.onload = function() {
+            fetchAndRenderArticle();
+        }
+    </script>
+</body>
+</html>
+
