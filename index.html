@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRUVANI | The Advanced Global News Network</title>
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+
+  <!-- Font Awesome (deferred) -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+
+  <!-- Google Verification -->
+  <meta name="google-site-verification" content="Y9MXg-8nZFJG7mFrJw32joXU_CwG7gqCJM787sRgQC4" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e63946">
+
+  <!-- ====== CRITICAL CSS (inlined) ====== -->
+  <style>
+    :root{--p:#e63946;--s:#1a1a1a;--a:#00d4ff;--l:#fff;--t:#333;--c:#f5f5f5;--b:#eee;--pol:#e63946;--bus:#28a745;--tech:#007bff;--spo:#ffc107;--hea:#17a2b8;--ent:#9c27b0;--wor:#3f51b5;--sci:#ff9800;--lif:#e91e63}
+    body.dark-mode{--l:#1a1a1a;--t:#f0f0f0;--c:#222;--b:#333}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:var(--c);color:var(--t);line-height:1.6;overflow-x:hidden}
+    a{color:var(--p);text-decoration:none}
+    .top-bar{background:var(--s);color:#ccc;padding:8px 0;font-size:13px}
+    .top-bar-content{max-width:1200px;margin:auto;padding:0 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+    header{background:var(--l);box-shadow:0 2px 8px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
+    .header-main{max-width:1200px;margin:auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .logo{font-size:32px;font-weight:900;background:linear-gradient(45deg,var(--p),#c91828);-webkit-background-clip:text;color:transparent}
+    .logo-sub{font-size:11px;opacity:.7}
+    .search-box{display:flex;background:var(--c);border:1px solid var(--b);border-radius:25px;overflow:hidden}
+    .search-box input{border:none;outline:none;padding:8px 12px;width:160px;font-size:14px;color:var(--t)}
+    .search-btn{background:var(--p);color:#fff;padding:8px 12px;border:none;cursor:pointer}
+    .mode-toggle{cursor:pointer;font-size:18px;padding:8px;color:var(--t)}
+    .quick-link-btn{padding:8px 14px;border-radius:5px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:5px}
+    .btn-ai{background:var(--a);color:#000}
+    .btn-contact{background:#343a40;color:#fff}
+    .nav-bar{background:var(--p)}
+    .nav-content{max-width:1200px;margin:auto;display:flex;flex-wrap:wrap}
+    .nav-content a{color:#fff;padding:12px 16px;font-weight:500}
+    .nav-content a:hover{background:#c72a38}
+    .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:1;transition:opacity .3s}
+    .loading-overlay.hidden{opacity:0;pointer-events:none}
+    .spinner{border:4px solid #f3f3f3;border-top:4px solid var(--p);border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .breaking-news{background:#fff3cd;color:var(--t);padding:10px 16px;margin:16px auto;max-width:1200px;border-left:4px solid #ffc107;font-weight:500}
+    .breaking-news .label{color:var(--p);font-weight:700;margin-right:8px}
+    .container{max-width:1200px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:2fr 1fr;gap:24px}
+    @media(max-width:992px){.container{grid-template-columns:1fr}}
+    .main-content{gap:20px}
+    .hero-news,.news-card{background:var(--l);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.05);opacity:0;animation:fadeIn .5s forwards}
+    @keyframes fadeIn{to{opacity:1}}
+    .news-card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(0,0,0,.15)}
+    .hero-news img,.news-card img{width:100%;height:200px;object-fit:cover;background:#eee}
+    .hero-news img{height:380px}
+    .hero-content,.news-card-content{padding:20px}
+    .category-tag{color:#fff;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;margin-bottom:12px;display:inline-block}
+    .category-tag.politics{background:var(--pol)}.category-tag.business{background:var(--bus)}.category-tag.technology{background:var(--tech)}
+    .category-tag.sports{background:var(--spo);color:#000}.category-tag.health{background:var(--hea)}.category-tag.entertainment{background:var(--ent)}
+    .category-tag.world{background:var(--wor)}.category-tag.science{background:var(--sci)}.category-tag.lifestyle{background:var(--lif)}
+    .hero-content h1{font-size:28px;margin:8px 0;line-height:1.3}
+    .meta-info{color:#666;font-size:13px;margin:12px 0;display:flex;gap:12px;flex-wrap:wrap}
+    .news-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    @media(max-width:768px){.news-grid{grid-template-columns:1fr}}
+    .sidebar{gap:20px}
+    .sidebar-section{background:var(--l);border-radius:12px;padding:20px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+    .sidebar-section h2{color:var(--p);margin-bottom:16px;padding-bottom:8px;border-bottom:3px solid var(--p);font-size:18px}
+    .skeleton{animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{background:#e0e0e0}50%{background:#f0f0f0}}
+    .category-tabs{margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
+    .tab-btn{padding:8px 16px;border-radius:6px;background:var(--c);border:1px solid var(--b);cursor:pointer;font-size:14px}
+    .tab-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
+    footer{background:var(--s);color:#aaa;padding:40px 16px;margin-top:40px}
+    .footer-content{max-width:1200px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+    @media(max-width:768px){.footer-content{grid-template-columns:1fr}}
+    .footer-section h3{color:var(--p);margin-bottom:16px}
+    .footer-section ul{list-style:none}
+    .footer-section ul li{padding:6px 0}
+    .footer-section ul li a{color:#aaa}
+    .social-icons a{font-size:18px;margin-right:12px;color:#aaa}
+    .footer-bottom{text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid #333;color:#888;font-size:13px}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-top:16px}
+    .stat-card{background:var(--c);padding:12px;border-radius:8px;text-align:center;font-size:13px}
+    .stat-value{font-size:17px;font-weight:700;color:var(--a)}
+  </style>
+</head>
+
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-content">
+      <div><span id="currentDate"></span> | <span id="currentTime"></span></div>
+      <div>nitinchoudharyw55@gmail.com | Global Network</div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-main">
+      <div>
+        <div class="logo">TRUVANI</div>
+        <div class="logo-sub">Truth in Every Word</div>
+      </div>
+      <div class="header-controls">
+        <div class="search-box">
+          <input type="text" placeholder="Search..." id="searchInput" aria-label="Search news">
+          <button class="search-btn" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <i class="fa-solid fa-moon mode-toggle" id="modeToggle" aria-label="Toggle dark mode"></i>
+        <a href="quantum.html" class="quick-link-btn btn-ai"><i class="fa-solid fa-microchip"></i> AI</a>
+        <a href="contact.html" class="quick-link-btn btn-contact"><i class="fa-solid fa-phone"></i> Contact</a>
+      </div>
+    </div>
+    <nav class="nav-bar" aria-label="Main navigation">
+      <div class="nav-content">
+        <a href="#">Home</a><a href="#">India</a><a href="#">World</a>
+        <a href="#">Business</a><a href="#">Technology</a><a href="#">Sports</a><a href="#">Health</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Breaking News -->
+  <div class="breaking-news">
+    <span class="label">BREAKING:</span>
+    <span id="breakingNewsText">Welcome to TRUVANI – Real-time Global News</span>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="container">
+    <div class="main-content">
+      <div class="category-tabs">
+        <button class="tab-btn active" data-cat="all">All</button>
+        <button class="tab-btn" data-cat="technology">Tech</button>
+        <button class="tab-btn" data-cat="business">Business</button>
+        <button class="tab-btn" data-cat="sports">Sports</button>
+        <button class="tab-btn" data-cat="health">Health</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="main-content">
+      <!-- Hero -->
+      <div class="hero-news skeleton" id="heroNews" style="height:500px">&nbsp;</div>
+
+      <!-- Grid -->
+      <div class="news-grid" id="newsGrid">
+        <div class="news-card skeleton" style="height:300px">&nbsp;</div>
+        <div class="news-card skeleton" style="height:300px">&nbsp;</div>
+        <div class="news-card skeleton" style="height:300px">&nbsp;</div>
+        <div class="news-card skeleton" style="height:300px">&nbsp;</div>
+      </div>
+
+      <div id="loadMore" style="text-align:center;margin:32px 0;display:none">
+        <button class="admin-btn" style="background:var(--p);color:#fff;padding:12px 24px;border:none;border-radius:6px;cursor:pointer">
+          Load More <i class="fa-solid fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h2>Trending Now</h2>
+        <div id="trendingList">
+          <p class="skeleton" style="height:16px;margin:8px 0">&nbsp;</p>
+          <p class="skeleton" style="height:16px;margin:8px 0">&nbsp;</p>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <h2>Stats</h2>
+        <div class="stats-grid">
+          <div class="stat-card"><div>Total Articles</div><div class="stat-value" id="totalArticles">0</div></div>
+          <div class="stat-card"><div>Total Views</div><div class="stat-value" id="totalViews">0</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About TRUVANI</h3>
+        <ul><li><a href="#">About Us</a></li><li><a href="#">Contact</a></li></ul>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>
+      </div>
+      <div class="footer-section">
+        <h3>Technology</h3>
+        <ul><li><a href="#">AI</a></li><li><a href="#">Cyber</a></li></ul>
+      </div>
+      <div class="footer-section">
+        <h3>Follow Us</h3>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 TRUVANI Global News Network. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+    import { getFirestore, collection, query, orderBy, limit, startAfter, getDocs, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.firebasestorage.app",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+    });
+
+    const db = getFirestore(app);
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+
+    let lastDoc = null;
+    let currentCategory = 'all';
+    let isLoading = false;
+    let articlesUnsub = null;
+
+    // ====== REAL-TIME BREAKING NEWS ======
+    const breakingRef = doc(db, 'settings', 'breaking');
+    onSnapshot(breakingRef, snap => {
+      if (snap.exists()) {
+        $('#breakingNewsText').textContent = snap.data().text || 'Welcome to TRUVANI';
+      }
+    });
+
+    // ====== FETCH ARTICLES ======
+    async function fetchArticles(reload = false) {
+      if (isLoading) return;
+      isLoading = true;
+      $('#loadMore').style.display = 'none';
+
+      const constraints = [orderBy('timestamp', 'desc'), limit(6)];
+      if (!reload && lastDoc) constraints.push(startAfter(lastDoc));
+
+      let q = query(collection(db, 'articles'), ...constraints);
+      if (currentCategory !== 'all') {
+        q = query(collection(db, 'articles'), ...constraints, where('category', '==', currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)));
+      }
+
+      const snap = await getDocs(q);
+      const articles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (reload) {
+        $('#heroNews').innerHTML = '<div class="skeleton" style="height:500px">&nbsp;</div>';
+        $('#newsGrid').innerHTML = '';
+      }
+
+      if (articles.length > 0) {
+        lastDoc = snap.docs[snap.docs.length - 1];
+        renderArticles(articles, reload);
+        if (snap.docs.length === 6) $('#loadMore').style.display = 'block';
+      }
+
+      isLoading = false;
+      hideLoading();
+    }
+
+    // ====== RENDER ======
+    function renderArticles(articles, isReload) {
+      if (isReload && articles[0]) renderHero(articles[0]);
+      const grid = $('#newsGrid');
+      const fragment = document.createDocumentFragment();
+
+      articles.slice(isReload ? 1 : 0).forEach((a, i) => {
+        const card = document.createElement('div');
+        card.className = 'news-card';
+        card.style.animationDelay = `${i * 0.1}s`;
+        card.innerHTML = `
+          <a href="article.html?id=${a.id}">
+            <img src="${a.imageUrl || 'https://via.placeholder.com/600x300'}" alt="${a.title}" loading="lazy">
+            <div class="news-card-content">
+              <span class="category-tag ${getCatClass(a.category)}">${(a.category || 'NEWS').toUpperCase()}</span>
+              <h3>${a.title}</h3>
+              <div class="meta-info">
+                <span><i class="fa-regular fa-clock"></i> ${a.date || 'Today'}</span>
+              </div>
+              <p>${(a.content || '').substring(0, 100)}...</p>
+            </div>
+          </a>
+        `;
+        fragment.appendChild(card);
+      });
+      grid.appendChild(fragment);
+    }
+
+    function renderHero(a) {
+      $('#heroNews').innerHTML = `
+        <a href="article.html?id=${a.id}">
+          <img src="${a.imageUrl || 'https://via.placeholder.com/1200x400'}" alt="${a.title}" loading="eager">
+          <div class="hero-content">
+            <span class="category-tag ${getCatClass(a.category)}">${(a.category || 'NEWS').toUpperCase()}</span>
+            <h1>${a.title}</h1>
+            <div class="meta-info">
+              <span><i class="fa-solid fa-calendar"></i> ${a.date || 'Today'}</span>
+              <span><i class="fa-solid fa-user"></i> ${a.author || 'TRUVANI'}</span>
+            </div>
+            <p>${(a.content || '').substring(0, 200)}...</p>
+          </div>
+        </a>
+      `;
+    }
+
+    function getCatClass(cat) {
+      if (!cat) return '';
+      const c = cat.toLowerCase();
+      const map = {politics:'politics',business:'business',technology:'technology',sports:'sports',health:'health',entertainment:'entertainment',world:'world',science:'science',lifestyle:'lifestyle'};
+      return map[c] || '';
+    }
+
+    // ====== CATEGORY TABS ======
+    $$('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.cat;
+        lastDoc = null;
+        fetchArticles(true);
+      });
+    });
+
+    // ====== INFINITE SCROLL ======
+    $('#loadMore').addEventListener('click', () => fetchArticles());
+
+    // ====== STATS & TRENDING ======
+    onSnapshot(collection(db, 'articles'), snap => {
+      let views = 0;
+      const trending = [];
+      snap.forEach(d => {
+        const a = d.data();
+        views += a.views || 0;
+        if (a.views > 100) trending.push(a);
+      });
+      $('#totalArticles').textContent = snap.size;
+      $('#totalViews').textContent = views.toLocaleString();
+
+      const list = $('#trendingList');
+      list.innerHTML = '';
+      trending.slice(0, 5).forEach(t => {
+        const p = document.createElement('p');
+        p.innerHTML = `<a href="article.html?id=${snap.docs.find(d => d.data().title === t.title).id}" style="color:var(--p)">${t.title.substring(0, 50)}...</a>`;
+        list.appendChild(p);
+      });
+    });
+
+    // ====== UTILITIES ======
+    function hideLoading() {
+      $('#loadingOverlay').classList.add('hidden');
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      $('#currentDate').textContent = now.toLocaleDateString('en-IN', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+      $('#currentTime').textContent = now.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+    }
+
+    // ====== DARK MODE ======
+    const modeToggle = $('#modeToggle');
+    if (localStorage.getItem('dark') === '1') document.body.classList.add('dark-mode');
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('dark', document.body.classList.contains('dark-mode') ? '1' : '0');
+      modeToggle.classList.toggle('fa-moon'); modeToggle.classList.toggle('fa-sun');
+    });
+
+    // ====== SEARCH ======
+    $('#searchInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        const q = e.target.value.trim();
+        if (q) location.href = `search.html?q=${encodeURIComponent(q)}`;
+      }
+    });
+
+    // ====== INIT ======
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    fetchArticles(true);
+
+    // ====== SERVICE WORKER ======
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
