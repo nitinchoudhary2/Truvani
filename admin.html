@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI Admin Panel (Secure Login)</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- === FIREBASE SDKs (REQUIRED) === -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <!-- ** NEW: Firebase Authentication SDK ** -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    
+    <style>
+        /* ... (All your previous Admin CSS styles go here) ... */
+        :root {
+            --primary-color: #e63946; 
+            --secondary-color: #1a1a1a; 
+            --accent-color: #00d4ff; 
+            --success-color: #28a745;
+            --light-bg: #ffffff;
+            --dark-bg: #0a0a0a;
+            --text-color: #333;
+            --card-bg: #f5f5f5;
+            --border-color: #eee;
+        }
+        body.dark-mode {
+            --light-bg: #1a1a1a;
+            --dark-bg: #000000;
+            --text-color: #f0f0f0;
+            --card-bg: #222222;
+            --border-color: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', monospace; background: var(--dark-bg); color: var(--text-color); transition: background 0.5s, color 0.5s; overflow-x: hidden; }
+        .admin-header { background: var(--light-bg); border-bottom: 3px solid var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .admin-logo { font-size: 28px; font-weight: bold; color: var(--primary-color); letter-spacing: 1px; }
+        .admin-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+        .admin-panel { background: var(--light-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-color); }
+        .form-input { width: 100%; padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-size: 14px; }
+        .admin-btn { padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 16px; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #d62839; }
+        
+        /* --- Login Form Styles --- */
+        #login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: var(--light-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        #login-error {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* --- Toast Notification (for feedback) --- */
+        #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+        /* ... (Toast styles) ... */
+    </style>
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+
+    <!-- 1. LOGIN SCREEN (Initially visible) -->
+    <div id="login-container">
+        <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 30px;">TRUVANI Admin Login</h2>
+        <div id="login-error"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="loginPassword" required>
+            </div>
+            <button type="submit" class="admin-btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+    </div>
+
+    <!-- 2. ADMIN CONTENT (Initially hidden) -->
+    <div id="admin-content" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div>
+                    <div class="admin-logo">TRUVANI ADMIN</div>
+                    <div id="admin-email" style="color: #666; font-size: 12px; margin-top: 5px;"></div>
+                </div>
+                <div>
+                    <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold; margin-left: 20px;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Site
+                    </a>
+                    <!-- ** NEW: Logout Button ** -->
+                    <button id="logoutButton" class="admin-btn" style="background: #333; color: white; margin-left: 15px;">
+                        <i class="fa-solid fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container (Your publish form) -->
+        <div class="admin-container">
+            <!-- (Stats, Grid, etc.) -->
+            <div class="admin-grid">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><i class="fa-solid fa-file-circle-plus"></i> CREATE NEW ARTICLE</h2>
+                    </div>
+                    <form id="newsForm">
+                        <!-- (All your form groups: title, category, content, etc.) -->
+                        <div class="form-group"><label class="form-label">Article Title</label><input type="text" class="form-input" id="newsTitle" required></div>
+                        <div class="form-group"><label class="form-label">Category</label><select class="form-select" id="newsCategory" required><option value="Technology">Technology</option><option value="Politics">Politics</option></select></div>
+                        <div class="form-group"><label class="form-label">Content</label><textarea class="form-textarea" id="newsContent" required></textarea></div>
+                        <div class="form-group"><label class="form-label">Image URL</label><input type="text" class="form-input" id="imageURL"></div>
+                        <div class="form-group"><label class="form-label">Author</label><input type="text" class="form-input" id="newsAuthor" value="Nitin Choudhary" required></div>
+                        <button type="submit" class="admin-btn btn-primary"><i class="fa-solid fa-paper-plane"></i> PUBLISH</button>
+                    </form>
+                </div>
+                <!-- (Right column) -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *******************************************************************
+        // 1. FIREBASE CONFIGURATION (LIVE KEYS ADDED)
+        // *******************************************************************
+        const firebaseConfig = {
+          apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+          authDomain: "truvani-news-5ac15.firebaseapp.com",
+          projectId: "truvani-news-5ac15",
+          storageBucket: "truvani-news-5ac15.firebasestorage.app",
+          messagingSenderId: "742142167141",
+          appId: "1:742142167141:web:c2c116f5e50a574de85e8c",
+          measurementId: "G-P3T36GZQV8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth(); // ** NEW: Auth service
+
+        // *******************************************************************
+        // 2. AUTHENTICATION LOGIC (Login/Logout/Check Status)
+        // *******************************************************************
+        const loginContainer = document.getElementById('login-container');
+        const adminContent = document.getElementById('admin-content');
+        const loginError = document.getElementById('login-error');
+
+        // Check login status when page loads
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is logged in
+                loginContainer.style.display = 'none';
+                adminContent.style.display = 'block';
+                document.getElementById('admin-email').textContent = `Logged in as: ${user.email}`;
+            } else {
+                // User is logged out
+                loginContainer.style.display = 'block';
+                adminContent.style.display = 'none';
+            }
+        });
+
+        // Login form submit
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Login successful
+                    loginError.textContent = '';
+                })
+                .catch((error) => {
+                    // Login failed
+                    loginError.textContent = "Error: Invalid email or password.";
+                });
+        });
+
+        // Logout button click
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // *******************************************************************
+        // 3. PUBLISH FUNCTIONALITY (Same as before)
+        // *******************************************************************
+        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // (Get form data: title, content, etc.)
+            const title = document.getElementById('newsTitle').value;
+            const category = document.getElementById('newsCategory').value;
+            const content = document.getElementById('newsContent').value;
+            const author = document.getElementById('newsAuthor').value;
+            const imageUrl = document.getElementById('imageURL').value;
+            
+            const currentDate = new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+            const timestamp = firebase.firestore.FieldValue.serverTimestamp(); 
+
+            try {
+                await db.collection('articles').add({
+                    title: title,
+                    category: category,
+                    content: content,
+                    imageUrl: imageUrl || 'https://via.placeholder.com/800x400.png?text=TRUVANI+News',
+                    author: author,
+                    date: currentDate,
+                    timestamp: timestamp, 
+                    views: 0
+                });
+
+                showToast('🚀 PUBLISH SUCCESS', `Article "${title}" is live!`, 'success');
+                this.reset();
+                document.getElementById('newsAuthor').value = 'Nitin Choudhary';
+                
+            } catch (error) {
+                console.error("Firebase Publish Error:", error);
+                // ** NEW: Check for permission error **
+                if (error.code === 'permission-denied') {
+                    showToast('❌ PUBLISH FAILED', `Error: You do not have permission. Check Security Rules.`, 'error');
+                } else {
+                    showToast('❌ PUBLISH FAILED', `Article was not saved.`, 'error');
+                }
+            }
+        });
+        
+        // (Toast Notification function)
+        function showToast(title, message, type = 'info') { /* ... */ }
+        // (Dark Mode logic)
+    </script>
+</body>
+</html>
+
+
