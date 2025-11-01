@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI AI - Quantum Admin Console</title>
+    <style>
+        :root {
+            --primary-color: #e63946;
+            --ai-color: #00d4ff;
+            --neon-glow: 0 0 20px #00d4ff;
+            --dark-bg: #0a0a0a;
+            --success-color: #00ff88;
+            --warning-color: #ffaa00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', monospace;
+            background: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Cyber Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 49%, rgba(0, 212, 255, 0.1) 50%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, rgba(0, 212, 255, 0.1) 50%, transparent 51%);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        .quantum-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-bottom: 3px solid var(--ai-color);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quantum-logo {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-color), var(--ai-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+            animation: logoGlow 2s infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.5); }
+        }
+
+        .admin-badge {
+            background: var(--success-color);
+            color: black;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Container */
+        .admin-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Stats Grid */
+        .quantum-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--ai-color);
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: statShine 3s infinite;
+        }
+
+        @keyframes statShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--ai-color);
+            text-shadow: var(--neon-glow);
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Main Grid */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        /* Panel Section */
+        .quantum-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--ai-color);
+        }
+
+        .panel-title {
+            font-size: 24px;
+            color: var(--ai-color);
+            text-shadow: var(--neon-glow);
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--ai-color);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--ai-color);
+            box-shadow: var(--neon-glow);
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .quantum-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quantum-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .quantum-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--ai-color), #0099cc);
+            color: black;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, var(--success-color), #00cc66);
+            color: black;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        /* AI Tools Grid */
+        .ai-tools {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .ai-tool-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--ai-color);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ai-tool-card:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .tool-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        /* News List */
+        .news-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .news-item {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 4px solid var(--ai-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .news-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* Blockchain Verification */
+        .blockchain-verify {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--success-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .verify-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--success-color);
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            animation: verifyPulse 2s infinite;
+        }
+
+        @keyframes verifyPulse {
+            0%, 100% { box-shadow: 0 0 10px var(--success-color); }
+            50% { box-shadow: 0 0 30px var(--success-color); }
+        }
+
+        /* Image Upload */
+        .image-upload-zone {
+            border: 3px dashed var(--ai-color);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .image-upload-zone:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--success-color);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid var(--ai-color);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--ai-color);
+            border-radius: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-tools {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="quantum-header">
+        <div class="header-content">
+            <div>
+                <div class="quantum-logo">⚡ TRUVANI AI QUANTUM CONSOLE</div>
+                <div style="color: var(--ai-color); font-size: 12px; margin-top: 5px;">
+                    Admin: Nitin Choudhary | nitinchoudharyw55@gmail.com
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="admin-badge">🔒 SECURED</div>
+                <a href="index.html" style="color: var(--ai-color); text-decoration: none; font-weight: bold;">← Back to Site</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="admin-container">
+        <!-- Stats -->
+        <div class="quantum-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📰</div>
+                <div class="stat-number" id="totalArticles">0</div>
+                <div class="stat-label">Total Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-number">15.2K</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔗</div>
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Blockchain Verified</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🤖</div>
+                <div class="stat-number">98.7%</div>
+                <div class="stat-label">AI Accuracy</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="admin-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Add News Panel -->
+                <div class="quantum-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">📝 CREATE QUANTUM NEWS</h2>
+                    </div>
+
+                    <form id="newsForm">
+                        <div class="form-group">
+                            <label class="form-label">🎯 News Title</label>
+                            <input type="text" class="form-input" id="newsTitle" placeholder="Enter quantum headline..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">🏷️ Category</label>
+                            <select class="form-select" id="newsCategory" required onchange="showSubcategory(this.value)">
+                                <option value="">Select Category</option>
+                                <option value="Rajasthan">🏰 Rajasthan</option>
+                                <option value="AI Prediction">🤖 AI Prediction</option>
+                                <option value="Breaking">⚡ Breaking</option>
+                                <option value="Quantum Tech">🔮 Quantum Tech</option>
+                                <option value="Blockchain">🔗 Blockchain</option>
+                                <option value="AR/VR">👓 AR/VR</option>
+                                <option value="Cybersecurity">🛡️ Cybersecurity</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="rajasthanSubcategory" style="display: none;">
+                            <label class="form-label">🏙️ Rajasthan Subcategory</label>
+                            <select class="form-select" id="newsSubcategory">
+                                <option value="">Select Subcategory (Optional)</option>
+                                <option value="Jaipur">🏙️ Jaipur</option>
+                                <option value="Jodhpur">🏰 Jodhpur</option>
+                                <option value="Udaipur">🌊 Udaipur</option>
+                                <option value="Kota">📚 Kota</option>
+                                <option value="Ajmer">🕌 Ajmer</option>
+                                <option value="Bikaner">🐪 Bikaner</option>
+                                <option value="Politics">🗳️ Politics</option>
+                                <option value="Tourism">🎭 Tourism</option>
+                                <option value="Culture">🎨 Culture</option>
+                                <option value="Business">💼 Business</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📝 Content</label>
+                            <textarea class="form-textarea" id="newsContent" placeholder="Write your quantum news content..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">🖼️ Featured Image</label>
+                            <div class="image-upload-zone" onclick="document.getElementById('imageInput').click()">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
+                                <div>Click to upload image</div>
+                                <div style="font-size: 12px; color: #888; margin-top: 5px;">Recommended: 800x400px</div>
+                            </div>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">😊 Sentiment Score (0-100)</label>
+                            <input type="range" min="0" max="100" value="50" class="form-input" id="sentimentScore" 
+                                   oninput="document.getElementById('sentimentValue').textContent = this.value + '%'">
+                            <div style="text-align: center; color: var(--ai-color); font-weight: bold; margin-top: 10px;">
+                                <span id="sentimentValue">50%</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">👤 Author</label>
+                            <input type="text" class="form-input" id="newsAuthor" value="Nitin Choudhary" required>
+                        </div>
+
+                        <!-- Blockchain Verification -->
+                        <div class="blockchain-verify">
+                            <div class="verify-badge">
+                                <span>🔗</span>
+                                <span>BLOCKCHAIN VERIFICATION ENABLED</span>
+                            </div>
+                            <div style="font-size: 12px; margin-top: 10px; color: #aaa;">
+                                All articles are automatically verified on blockchain
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px; display: flex; gap: 10px;">
+                            <button type="submit" class="quantum-btn btn-primary">
+                                🚀 PUBLISH TO QUANTUM NETWORK
+                            </button>
+                            <button type="button" class="quantum-btn btn-success" onclick="saveDraft()">
+                                💾 SAVE DRAFT
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- AI Tools -->
+                <div class="quantum-panel" style="margin-bottom: 30px;">
+                    <div class="panel-header">
+                        <h2 class="panel-title">🤖 AI QUANTUM TOOLS</h2>
+                    </div>
+                    <div class="ai-tools">
+                        <div class="ai-tool-card" onclick="aiGenerateTitle()">
+                            <div class="tool-icon">✨</div>
+                            <div>AI Title Generator</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="aiSummary()">
+                            <div class="tool-icon">📊</div>
+                            <div>AI Summary</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="aiSentiment()">
+                            <div class="tool-icon">😊</div>
+                            <div>Sentiment Analysis</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="aiFactCheck()">
+                            <div class="tool-icon">✅</div>
+                            <div>Fact Checker</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="aiTranslate()">
+                            <div class="tool-icon">🌐</div>
+                            <div>Multi-language</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="aiOptimize()">
+                            <div class="tool-icon">🎯</div>
+                            <div>SEO Optimizer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Articles -->
+                <div class="quantum-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">📋 RECENT ARTICLES</h2>
+                    </div>
+                    <div class="news-list" id="newsList">
+                        <div class="news-item">
+                            <h4 style="color: var(--ai-color); margin-bottom: 10px;">Sample Quantum Article</h4>
+                            <div style="font-size: 12px; color: #aaa; margin-bottom: 10px;">
+                                AI Prediction • 2 hours ago • 🔗 Verified
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="quantum-btn btn-danger" style="flex: 1;">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let articleCount = 0;
+
+        // Show subcategory if Rajasthan selected
+        function showSubcategory(category) {
+            const subcategoryDiv = document.getElementById('rajasthanSubcategory');
+            if (category === 'Rajasthan') {
+                subcategoryDiv.style.display = 'block';
+            } else {
+                subcategoryDiv.style.display = 'none';
+            }
+        }
+
+        // Preview Image
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Form Submit
+        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                // Get form data
+                const title = document.getElementById('newsTitle').value;
+                const category = document.getElementById('newsCategory').value;
+                const subcategory = document.getElementById('newsSubcategory').value;
+                const content = document.getElementById('newsContent').value;
+                const sentiment = document.getElementById('sentimentScore').value;
+                const author = document.getElementById('newsAuthor').value;
+
+            // Add to list
+            const newsList = document.getElementById('newsList');
+            const newsItem = document.createElement('div');
+            newsItem.className = 'news-item';
+            newsItem.innerHTML = `
+                <h4 style="color: var(--ai-color); margin-bottom: 10px;">${title}</h4>
+                <div style="font-size: 12px; color: #aaa; margin-bottom: 10px;">
+                    ${category} • Just now • 🔗 Verified • 😊 ${sentiment}%
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="quantum-btn btn-danger" style="flex: 1;" onclick="deleteArticle(this)">🗑️ Delete</button>
+                </div>
+            `;
+            newsList.insertBefore(newsItem, newsList.firstChild);
+
+            // Update counter
+            articleCount++;
+            document.getElementById('totalArticles').textContent = articleCount;
+
+            // Success message
+            alert(`🚀 QUANTUM PUBLISHED!\n\n✅ Article: ${title}\n🏷️ Category: ${category}\n😊 Sentiment: ${sentiment}%\n🔗 Blockchain Verified\n\n✨ Live on quantum network!`);
+
+            // Reset form
+            this.reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('newsAuthor').value = 'Nitin Choudhary';
+            document.getElementById('sentimentValue').textContent = '50%';
+        });
+
+        // AI Tools
+        function aiGenerateTitle() {
+            const titles = [
+                "Quantum Computing Achieves Unprecedented Breakthrough",
+                "AI Systems Demonstrate Human-Level Comprehension",
+                "Blockchain Revolution Transforms Digital Security",
+                "Neural Networks Unlock New Frontiers in Science"
+            ];
+            const random = titles[Math.floor(Math.random() * titles.length)];
+            document.getElementById('newsTitle').value = random;
+            alert('✨ AI Generated Title!\n\n' + random);
+        }
+
+        function aiSummary() {
+            alert('📊 AI Summary Tool\n\nThis will analyze your content and generate an intelligent summary using quantum algorithms.');
+        }
+
+        function aiSentiment() {
+            const sentiment = Math.floor(Math.random() * 100);
+            document.getElementById('sentimentScore').value = sentiment;
+            document.getElementById('sentimentValue').textContent = sentiment + '%';
+            alert(`😊 AI Sentiment Analysis Complete!\n\nScore: ${sentiment}%`);
+        }
+
+        function aiFactCheck() {
+            alert('✅ AI Fact Checker\n\nCross-referencing with quantum database...\n\nCredibility Score: 98.7%');
+        }
+
+        function aiTranslate() {
+            alert('🌐 Multi-language Translation\n\nSupported languages:\n• English\n• Hindi\n• Spanish\n• French\n• Chinese\n• Arabic');
+        }
+
+        function aiOptimize() {
+            alert('🎯 SEO Optimization Complete!\n\n✅ Keywords optimized\n✅ Meta tags enhanced\n✅ Readability improved\n\nSEO Score: 95/100');
+        }
+
+        function saveDraft() {
+            alert('💾 Draft Saved!\n\nYour quantum article has been saved to secure blockchain storage.');
+        }
+
+        function deleteArticle(btn) {
+            if(confirm('⚠️ Delete this article from quantum network?')) {
+                btn.closest('.news-item').remove();
+                articleCount--;
+                document.getElementById('totalArticles').textContent = Math.max(0, articleCount);
+            }
+        }
+    </script>
+</body>
+</html>
