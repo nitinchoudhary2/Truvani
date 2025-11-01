@@ -1,0 +1,330 @@
+<!-- यह 3 लाइनें <head> टैग में होनी चाहिए, लेकिन <body> के आखिर में भी काम करेंगी -->
+<script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+
+<script>
+    // -----------------------------------------------------------
+    // 🔥 आपकी असली (Actual) Firebase Config (मैंने ऐड कर दी है)
+    // -----------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.firebasestorage.app",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c",
+      measurementId: "G-P3T36GZQV8"
+    };
+
+    // Initialize Firebase
+    let db, storage;
+    
+    // DOMContentLoaded यह पक्का करता है कि पेज पहले लोड हो
+    document.addEventListener("DOMContentLoaded", function() {
+        try {
+            if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                storage = firebase.storage();
+                
+                // ऑफलाइन डेटा के लिए
+                db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+                firebase.firestore().settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
+                
+                // "लाइव" आर्टिकल लोड करें
+                loadArticles(); 
+                loadTrending();
+            } else {
+                throw new Error("Firebase Config is missing or empty.");
+            }
+
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('articlesContainer').innerHTML = '<div style="text-align:center; color:#ff4444; padding:50px;">Error: Firebase Configuration is incorrect.</div>';
+        }
+    });
+
+    let currentCategory = 'all';
+    let allArticles = []; // सभी आर्टिकल यहाँ स्टोर होंगे
+
+    // -----------------------------------------------------------
+    // 🔥 "अल्ट्रा-एडवांस" लाइव रियल-टाइम फ़ंक्शन
+    // -----------------------------------------------------------
+    async function loadArticles() {
+        const container = document.getElementById('articlesContainer');
+        const spinner = document.getElementById('loadingSpinner');
+        if (!db) return; // अगर db नहीं है तो रुक जाएँ
+        
+        try {
+            spinner.style.display = 'block';
+            
+            db.collection('news')
+              .orderBy('timestamp', 'desc')
+              .limit(20) 
+              .onSnapshot((snapshot) => {
+                
+                spinner.style.display = 'none'; 
+                allArticles = [];             
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; padding:50px;">अभी कोई खबर नहीं है...</div>';
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    allArticles.push(data);
+                });
+                
+                filterCategory(currentCategory, true); 
+                lazyLoadImages(); 
+                
+            }, (error) => {
+                console.error("Error listening to articles:", error);
+                spinner.style.display = 'none';
+                container.innerHTML = `<div style="text-align:center; color:#ff4444; padding:50px;">Error loading articles. (Check Firebase Rules: ${error.message})</div>`;
+            });
+            
+        } catch (error) {
+            console.error("Initial loadArticles Error:", error);
+        }
+    }
+
+    function filterCategory(category, fromSnapshot = false) {
+        currentCategory = category;
+        if (!fromSnapshot) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+        let filteredArticles;
+        if (category === 'all') {
+            filteredArticles = allArticles;
+        } else {
+            filteredArticles = allArticles.filter(article => article.category === category);
+        }
+        displayArticles(filteredArticles); 
+    }
+
+    function displayArticles(articles) {
+        const container = document.getElementById('articlesContainer');
+        container.innerHTML = '';
+        articles.forEach((data) => {
+            const article = document.createElement('div');
+            article.className = 'article-card';
+            article.innerHTML = `
+                <img data-src="${data.imageUrl || 'https://images.unsplash.com/photo-1586227740560-8cf2732c1531?w=800'}" alt="${data.title}" style="background:#1a1a1a;">
+                <div class="article-content">
+                    <span style="background: var(--ai-color); color: black; padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                        ${data.category || 'NEWS'}
+                    </span>
+                    <h2 style="margin: 15px 0; font-size: 24px; cursor:pointer;" onclick="openArticle('${data.id}', \`${data.title}\`)">${data.title}</h2>
+                    <p style="color: #ccc; margin-bottom: 15px;">${data.content.substring(0, 200)}...</p>
+                    <div class="ai-summary-panel" style="display:none;" id="summary-${data.id}">
+                        <h4 style="color: var(--ai-color); margin-bottom: 10px;">AI Summary</h4>
+                        <p id="summary-text-${data.id}">Loading AI summary...</p>
+                    </div>
+                    <div class="article-meta">
+                        <div>
+                            <div style="color: #aaa; font-size: 14px;">${data.author || 'Nitin Choudhary'}</div>
+                            <div class="view-count"> <span id="views-${data.id}">${data.views || 0}</span> views</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="summary-btn" onclick="showAISummary('${data.id}', \`${data.content}\`)">
+                                AI Summary
+                            </button>
+                            <button class="like-btn" id="like-${data.id}" onclick="likeArticle('${data.id}')">
+                                ❤️ <span id="likes-${data.id}">${data.likes || 0}</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="comments-section">
+                        <h3 style="color: var(--ai-color); margin-bottom: 20px;">Comments</h3>
+                        <textarea class="comment-box" id="comment-${data.id}" placeholder="Write your comment..."></textarea>
+                        <button onclick="addComment('${data.id}')" style="background: var(--ai-color); color: black; padding: 10px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer;">
+                            Post Comment
+                        </button>
+                        <div id="comments-list-${data.id}" style="margin-top: 20px;"></div>
+                    </div>
+                    <div class="related-articles">
+                        <h3 style="color: var(--ai-color); margin-bottom: 20px;">Related Articles</h3>
+                        <div id="related-${data.id}"></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(article);
+            loadComments(data.id);
+            loadRelatedArticles(data.id, data.category);
+        });
+    }
+
+    function openArticle(articleId, title) {
+        if (!db) return;
+        incrementViewCount(articleId);
+        alert('Opening article: ' + title);
+        console.log("Article " + articleId + " clicked. Incrementing view count.");
+        // ⚠️ बाद में इसे असली 'article.html' पेज पर भेजें
+        // window.location.href = `article.html?id=${articleId}`;
+    }
+
+    function lazyLoadImages() {
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        });
+    }
+
+    function openSearch() {
+        document.getElementById('searchContainer').classList.add('active');
+        document.getElementById('realTimeSearch').focus();
+    }
+    function closeSearch() {
+        document.getElementById('searchContainer').classList.remove('active');
+    }
+    function searchRealTime(query) {
+        const results = document.getElementById('searchResults');
+        if (query.length < 2) {
+            results.innerHTML = ''; return;
+        }
+        const filtered = allArticles.filter(article => 
+            article.title.toLowerCase().includes(query.toLowerCase()) ||
+            article.content.toLowerCase().includes(query.toLowerCase())
+        );
+        results.innerHTML = '';
+        filtered.forEach(article => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `<h4 style="color: var(--ai-color);">${article.title}</h4><p style="font-size: 14px; color: #aaa; margin-top: 5px;">${article.content.substring(0, 100)}...</p>`;
+            item.onclick = () => { openArticle(article.id, article.title); closeSearch(); };
+            results.appendChild(item);
+        });
+        if (filtered.length === 0) {
+            results.innerHTML = '<div style="padding: 20px; text-align: center; color: #aaa;">No results found</div>';
+        }
+    }
+
+    async function incrementViewCount(articleId) {
+        if (!db) return;
+        try {
+            const docRef = db.collection('news').doc(articleId);
+            await docRef.update({
+                views: firebase.firestore.FieldValue.increment(1)
+            });
+        } catch (error) { console.error("Error incrementing views:", error); }
+    }
+
+    async function likeArticle(articleId) {
+        if (!db) return;
+        try {
+            const docRef = db.collection('news').doc(articleId);
+            await docRef.update({
+                likes: firebase.firestore.FieldValue.increment(1)
+            });
+            const likeBtn = document.getElementById(`like-${articleId}`);
+            if(likeBtn) likeBtn.classList.add('liked');
+        } catch (error) { console.error("Error liking article:", error); }
+    }
+
+    async function addComment(articleId) {
+        if (!db) return;
+        const commentText = document.getElementById(`comment-${articleId}`).value;
+        if (!commentText.trim()) {
+            alert('Please write a comment!'); return;
+        }
+        try {
+            await db.collection('comments').add({
+                articleId: articleId,
+                text: commentText,
+                author: 'Anonymous User',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById(`comment-${articleId}`).value = '';
+            loadComments(articleId); 
+            alert('Comment posted!');
+        } catch (error) { console.error("Error adding comment:", error); alert('Error posting comment'); }
+    }
+
+    async function loadComments(articleId) {
+        if (!db) return;
+        try {
+            const snapshot = await db.collection('comments').where('articleId', '==', articleId).orderBy('timestamp', 'desc').limit(5).get();
+            const commentsList = document.getElementById(`comments-list-${articleId}`);
+            if (!commentsList) return; 
+            commentsList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const comment = doc.data();
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                commentItem.innerHTML = `<div style="font-weight: bold; color: var(--ai-color); margin-bottom: 5px;">${comment.author}</div><div>${comment.text}</div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'Just now'}</div>`;
+                commentsList.appendChild(commentItem);
+            });
+        } catch (error) { console.error("Error loading comments:", error); }
+    }
+
+    async function loadRelatedArticles(articleId, category) {
+        if (!db) return;
+        try {
+            const snapshot = await db.collection('news').where('category', '==', category).limit(4).get();
+            const relatedContainer = document.getElementById(`related-${articleId}`);
+            if (!relatedContainer) return; 
+            relatedContainer.innerHTML = '';
+            let count = 0;
+            snapshot.forEach((doc) => {
+                if (doc.id !== articleId && count < 3) {
+                    count++;
+                    const data = doc.data();
+                    const relatedItem = document.createElement('div');
+                    relatedItem.className = 'related-item';
+                    relatedItem.onclick = () => openArticle(doc.id, data.title); 
+                    relatedItem.innerHTML = `<img data-src="${data.imageUrl || 'https://images.unsplash.com/photo-1586227740560-8cf2732c1531?w=200'}" alt="${data.title}" style="background:#1a1a1a;"><div><h4 style="color: var(--ai-color); margin-bottom: 5px;">${data.title}</h4><p style="font-size: 14px; color: #aaa;">${data.content.substring(0, 100)}...</p></div>`;
+                    relatedContainer.appendChild(relatedItem);
+                }
+            });
+        } catch (error) { console.error("Error loading related articles:", error); }
+    }
+
+    function showAISummary(articleId, content) {
+        const summaryPanel = document.getElementById(`summary-${articleId}`);
+        const summaryText = document.getElementById(`summary-text-${articleId}`);
+        if (!summaryPanel || !summaryText) return;
+        summaryPanel.style.display = 'block';
+        setTimeout(() => {
+            const words = content.split(' ');
+            const summary = words.slice(0, 30).join(' ') + '... (AI Summary coming soon)';
+            summaryText.textContent = ' ' + summary;
+        }, 1000);
+    }
+
+    async function loadTrending() {
+        if (!db) return;
+        try {
+            const snapshot = await db.collection('news').orderBy('views', 'desc').limit(5).get();
+            const sidebar = document.getElementById('trendingSidebar');
+            if (!sidebar) return;
+            sidebar.innerHTML = '';
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'trending-item';
+                item.onclick = () => openArticle(doc.id, data.title);
+                item.innerHTML = `<div style="font-weight: bold; font-size: 24px; color: var(--ai-color);">#${index + 1}</div><div style="margin-top: 5px;">${data.title}</div><div class="view-count"> ${data.views || 0} views</div>`;
+                sidebar.appendChild(item);
+            });
+        } catch (error) { console.error("Error loading trending:", error); }
+    }
+
+    // -----------------------------------------------------------
+    // ⚠️ 'sw.js' (ऑफलाइन) को फिक्सिंग के लिए डिसेबल कर दिया गया है
+    // -----------------------------------------------------------
+    /*
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('SW registered'))
+            .catch((err) => console.error('SW registration failed:', err));
+    }
+    */
+</script>
