@@ -1,373 +1,276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Truvani News</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin - Truvani</title>
 
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-functions-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
 
-    <style>
-        body {
-            font-family: system-ui, sans-serif;
-            background: #1a1a1a; color: white;
-            margin: 0; padding: 20px;
-        }
-        h1, h2 { color: #00d4ff; }
-        .container { max-width: 900px; margin: 0 auto; }
-        
-        /* NAYA: डैशबोर्ड स्टैट्स (Stats) */
-        .dashboard-stats {
-            display: flex; gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #2a2a2a; padding: 20px;
-            border-radius: 10px; border-left: 5px solid #00d4ff;
-            flex-grow: 1;
-        }
-        .stat-card h3 { margin: 0; color: #aaa; font-size: 16px; }
-        .stat-card .count { font-size: 32px; font-weight: bold; color: white; }
-
-        .admin-form {
-            background: #2a2a2a; padding: 25px;
-            border-radius: 10px; border: 2px solid #00d4ff;
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block; margin-bottom: 8px;
-            font-weight: bold; color: #00d4ff;
-        }
-        input, textarea, select {
-            width: 100%; padding: 12px;
-            border-radius: 5px; border: 1px solid #555;
-            background: #333; color: white;
-            font-size: 16px; box-sizing: border-box;
-        }
-        textarea { min-height: 150px; }
-        button {
-            background: #00d4ff; color: black;
-            border: none; padding: 15px 30px;
-            font-size: 16px; font-weight: bold;
-            border-radius: 25px; cursor: pointer;
-            transition: all 0.3s;
-        }
-        button:hover { transform: scale(1.05); }
-        #auth-status {
-            font-size: 18px; text-align: center;
-            padding: 40px; color: #ffc107;
-        }
-        #admin-content { display: none; }
-        
-        .news-list { margin-top: 30px; }
-        .news-item {
-            background: #2a2a2a; padding: 15px;
-            border-radius: 8px; margin-bottom: 10px;
-        }
-        .news-item-header {
-            display: flex; justify-content: space-between;
-            align-items: center;
-        }
-        .news-item h3 { margin: 0; }
-        
-        /* NAYA: न्यूज़ के आँकड़े (Stats) */
-        .news-item-stats {
-            display: flex; gap: 20px;
-            margin-top: 15px; padding-top: 10px;
-            border-top: 1px solid #444;
-            font-size: 14px; color: #aaa;
-        }
-
-        .btn-action {
-             padding: 10px 15px; border: none;
-             border-radius: 15px; cursor: pointer;
-             font-weight: bold; margin-left: 5px;
-        }
-        .edit-btn { background: #007bff; color: white; }
-        .delete-btn { background: #e63946; color: white; }
-        .cancel-btn { background: #6c757d; color: white; margin-left: 10px; }
-        
-    </style>
+  <style>
+    body{font-family:system-ui;background:#0b0b0b;color:#fff;padding:20px}
+    .wrap{max-width:980px;margin:0 auto}
+    .card{background:#111;padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#0f0f0f;color:#fff;margin-top:8px}
+    label{color:#bbb;font-weight:700}
+    .row{display:flex;gap:12px}
+    .col{flex:1}
+    .btn{background:#00d4ff;color:#000;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:800}
+    .danger{background:#e63946;color:#fff}
+    .small{font-size:13px;color:#aaa}
+    .list{margin-top:12px}
+    .item{display:flex;justify-content:space-between;padding:10px;border-radius:8px;background:#0c0c0c;margin-top:8px;border:1px solid #222}
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Admin Panel — TRUVANI</h1>
 
-    <div class="container">
-        <h1>Admin Panel (Truvani News)</h1>
-        
-        <div id="auth-status">Loading... Checking authorization...</div>
-
-        <div id="admin-content">
-            
-            <h2>Dashboard</h2>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total Articles Posted</h3>
-                    <div class="count" id="total-articles-count">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Views (All)</h3>
-                    <div class="count" id="total-views-count">0</div>
-                </div>
-            </div>
-
-            <form class="admin-form" id="news-form">
-                <h2 id="form-title">Create New Article</h2>
-                <input type="hidden" id="edit-mode-id">
-                
-                <div class="form-group">
-                    <label for="title">Title (शीर्षक)</label>
-                    <input type="text" id="title" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="content">Content (खबर)</label>
-                    <textarea id="content" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="category">Category (कैटेगरी)</label>
-                    <select id="category" required>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="National">National</option>
-                        <option value="World">World</option>
-                        <option value="Sports">Sports</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="image">Image File (फ़ोटो अपलोड करें)</label>
-                    <input type="file" id="image" accept="image/jpeg, image/png">
-                </div>
-                
-                <div class="form-group">
-                    <label for="imageUrl">OR Image Link (या फ़ोटो का लिंक पेस्ट करें)</label>
-                    <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
-                </div>
-                
-                <button type="submit" id="submit-btn">Post Article</button>
-                <button type="button" id="cancel-edit-btn" class="cancel-btn" style="display: none;" onclick="cancelEditMode()">Cancel Edit</button>
-                <div id="loading" style="display: none; color: #00d4ff; margin-top: 15px;">Publishing...</div>
-            </form>
-
-            <div class="news-list">
-                <h2>Existing Articles</h2>
-                <div id="articles-list-container">Loading articles...</div>
-            </div>
+    <div id="authSection" class="card" style="margin-bottom:16px">
+      <div id="authForm">
+        <label>Email</label>
+        <input id="email" type="email" value="">
+        <label>Password</label>
+        <input id="password" type="password" value="">
+        <div style="margin-top:12px">
+          <button class="btn" onclick="doLogin()">Login</button>
         </div>
+        <div class="small" style="margin-top:8px">Only admin can login.</div>
+      </div>
+
+      <div id="adminControls" style="display:none">
+        <div class="small">Logged in as <span id="userEmail"></span> — <button onclick="doLogout()" class="small btn" style="background:#333;color:#fff">Logout</button></div>
+      </div>
     </div>
 
-    <script>
-        // 1. Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
-            authDomain: "truvani-news-5ac15.firebaseapp.com",
-            projectId: "truvani-news-5ac15",
-            storageBucket: "truvani-news-5ac15.firebasestorage.app",
-            messagingSenderId: "742142167141",
-            appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
-        };
-        
-        // 2. Firebase को शुरू करना
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        const auth = firebase.auth();
-        const functions = firebase.functions();
-        
-        const authStatus = document.getElementById('auth-status');
-        const adminContent = document.getElementById('admin-content');
-        const newsForm = document.getElementById('news-form');
-        const loading = document.getElementById('loading');
-        const submitBtn = document.getElementById('submit-btn');
-        const formTitle = document.getElementById('form-title');
-        const editModeIdInput = document.getElementById('edit-mode-id');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    <div id="adminUI" style="display:none">
+      <div class="card" style="margin-bottom:14px">
+        <h3>Create / Edit Article</h3>
+        <input id="editId" type="hidden">
+        <label>Title</label><input id="title">
+        <label>Content</label><textarea id="content" rows="6"></textarea>
+        <div class="row">
+          <div class="col">
+            <label>Category</label>
+            <select id="category">
+              <option>Rajasthan</option>
+              <option>National</option>
+              <option>World</option>
+              <option>Sports</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Image (File)</label>
+            <input id="imageFile" type="file" accept="image/*">
+            <label class="small">OR Image URL</label>
+            <input id="imageUrl" placeholder="https://...">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" onclick="publishArticle()">Publish</button>
+          <button class="btn" onclick="updateArticle()" id="updateBtn" style="display:none">Update</button>
+          <button class="danger" onclick="cancelEdit()" id="cancelBtn" style="display:none">Cancel</button>
+        </div>
+      </div>
 
-        // 3. एडमिन चेक (Lock System)
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                user.getIdTokenResult().then(idTokenResult => {
-                    if (idTokenResult.claims.admin === true) {
-                        authStatus.style.display = 'none';
-                        adminContent.style.display = 'block';
-                        
-                        // NAYA: सारे फ़ंक्शंस लोड करें
-                        loadDashboardStats(); // डैशबोर्ड के आँकड़े
-                        loadExistingArticles(); // न्यूज़ की लिस्ट
-                    } else {
-                        authStatus.innerHTML = '<h2>Access Denied</h2>';
-                    }
-                });
-            } else {
-                authStatus.innerHTML = '<h2>Please Log In</h2>';
-            }
-        });
-        
-        // NAYA: 4. डैशबोर्ड के आँकड़े लोड करना
-        async function loadDashboardStats() {
-            // कुल आर्टिकल काउंट
-            try {
-                const querySnapshot = await db.collection('news').get();
-                document.getElementById('total-articles-count').textContent = querySnapshot.size;
-                
-                // कुल व्यूज़ काउंट (यह थोड़ा धीमा हो सकता है अगर बहुत न्यूज़ हैं)
-                let totalViews = 0;
-                querySnapshot.forEach(doc => {
-                    totalViews += (doc.data().views || 0);
-                });
-                document.getElementById('total-views-count').textContent = totalViews;
+      <div class="card">
+        <h3>Existing Articles</h3>
+        <div id="articlesList" class="list small">Loading...</div>
+      </div>
+    </div>
+  </div>
 
-            } catch (e) { console.error("Stats Error: ", e); }
-        }
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+    authDomain: "truvani-news-5ac15.firebaseapp.com",
+    projectId: "truvani-news-5ac15",
+    storageBucket: "truvani-news-5ac15.firebasestorage.app",
+    messagingSenderId: "742142167141",
+    appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
 
-        // 5. फॉर्म सबमिट (क्रिएट + एडिट)
-        newsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            submitBtn.disabled = true; loading.style.display = 'block';
+  // --- admin email that is allowed to login (only client check)
+  const ALLOWED_EMAIL = "nitinchoudharyw55@gmail.com";
 
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-            const category = document.getElementById('category').value;
-            const imageFile = document.getElementById('image').files[0];
-            const imageUrlManual = document.getElementById('imageUrl').value; // NAYA
-            
-            const editId = editModeIdInput.value;
-            let finalImageUrl = '';
+  // Login (email/password)
+  async function doLogin(){
+    const email = document.getElementById('email').value.trim();
+    const pw = document.getElementById('password').value;
+    if(!email || !pw) return alert('Enter credentials');
+    try{
+      const res = await auth.signInWithEmailAndPassword(email,pw);
+      // allow only ALLOWED_EMAIL
+      if(res.user.email !== ALLOWED_EMAIL){
+        await auth.signOut();
+        return alert('Access denied (not admin email).');
+      }
+      onAuthChange(res.user);
+    }catch(e){
+      // If user not exist, show friendly message with next steps
+      if(e.code === 'auth/user-not-found'){
+        // Suggest creating the user from Firebase Console (safer)
+        alert('User not found. Create this admin user in Firebase Console Authentication, then set it a secure password.');
+      } else {
+        alert('Login failed: ' + e.message);
+      }
+      console.error(e);
+    }
+  }
 
-            try {
-                // NAYA: इमेज लॉजिक (लिंक या अपलोड)
-                if (imageUrlManual) {
-                    // अगर लिंक दिया है, तो उसे इस्तेमाल करें
-                    finalImageUrl = imageUrlManual;
-                } else if (imageFile) {
-                    // अगर फ़ाइल दी है, तो उसे अपलोड करें
-                    const imageRef = storage.ref(`news_images/${Date.now()}_${imageFile.name}`);
-                    const snapshot = await imageRef.put(imageFile);
-                    finalImageUrl = await snapshot.ref.getDownloadURL();
-                }
+  function doLogout(){
+    auth.signOut();
+    document.getElementById('adminUI').style.display='none';
+    document.getElementById('adminControls').style.display='none';
+    document.getElementById('authForm').style.display='block';
+  }
 
-                let articleData = {
-                    title: title,
-                    content: content,
-                    category: category,
-                    author: auth.currentUser.email,
-                    timestamp: editId ? undefined : firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // अगर कोई नई इमेज (लिंक या अपलोड) है, तभी उसे डेटा में जोड़ें
-                if (finalImageUrl) {
-                    articleData.imageUrl = finalImageUrl;
-                }
+  auth.onAuthStateChanged(user=>{
+    if(user && user.email===ALLOWED_EMAIL){
+      onAuthChange(user);
+    } else {
+      // not logged in
+    }
+  });
 
-                articleData = JSON.parse(JSON.stringify(articleData)); // 'undefined' को हटाएँ
+  function onAuthChange(user){
+    document.getElementById('authForm').style.display='none';
+    document.getElementById('adminControls').style.display='block';
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('adminUI').style.display='block';
+    loadArticlesAdmin();
+  }
 
-                if (editId) {
-                    // एडिट मोड
-                    await db.collection('news').doc(editId).update(articleData);
-                    alert('Article updated!');
-                } else {
-                    // क्रिएट मोड
-                    // NAYA: व्यूज़ और रिएक्शन्स को 0 से शुरू करें
-                    articleData.views = 0;
-                    articleData.reactions = { "👍": 0, "❤️": 0, "🔥": 0, "😮": 0 };
-                    await db.collection('news').add(articleData);
-                    alert('Article published!');
-                }
+  // publish article
+  async function publishArticle(){
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const category = document.getElementById('category').value;
+    const file = document.getElementById('imageFile').files[0];
+    const imageUrlManual = document.getElementById('imageUrl').value.trim();
 
-                cancelEditMode();
-                loadExistingArticles();
-                loadDashboardStats(); // NAYA: आँकड़े रीफ़्रेश करें
+    if(!title || !content) return alert('Title and content required');
+    try{
+      let imageUrl = '';
+      if(imageUrlManual) imageUrl = imageUrlManual;
+      else if(file){
+        const ref = storage.ref('news_images/'+Date.now()+'_'+file.name);
+        const snap = await ref.put(file);
+        imageUrl = await snap.ref.getDownloadURL();
+      }
 
-            } catch (error) {
-                alert('Failed to publish: ' + error.message);
-            } finally {
-                submitBtn.disabled = false; loading.style.display = 'none';
-            }
-        });
+      const doc = {
+        title, content, category,
+        author: auth.currentUser ? auth.currentUser.email : 'admin',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        imageUrl: imageUrl || '',
+        views: 0,
+        reactions: { "👍":0,"❤️":0,"🔥":0,"😮":0 }
+      };
 
-        // 6. पुराने आर्टिकल्स लोड करना (NAYA: व्यूज़ और लाइक्स के साथ)
-        async function loadExistingArticles() {
-            const container = document.getElementById('articles-list-container');
-            container.innerHTML = 'Loading articles...';
-            
-            try {
-                const snapshot = await db.collection('news').orderBy('timestamp', 'desc').limit(20).get();
-                if (snapshot.empty) { container.innerHTML = 'No articles found.'; return; }
-                
-                container.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    
-                    // NAYA: रिएक्शन्स (लाइक्स) का टोटल काउंट
-                    let totalReactions = 0;
-                    if(data.reactions) {
-                        totalReactions = Object.values(data.reactions).reduce((a, b) => a + b, 0);
-                    }
-                    
-                    const item = document.createElement('div');
-                    item.className = 'news-item';
-                    item.innerHTML = `
-                        <div class="news-item-header">
-                            <h3>${data.title} (${data.category})</h3>
-                            <div>
-                                <button class="btn-action edit-btn" onclick="loadArticleForEdit('${doc.id}')">Edit</button>
-                                <button class="btn-action delete-btn" onclick="deleteArticle('${doc.id}')">Delete</button>
-                            </div>
-                        </div>
-                        <div class="news-item-stats">
-                            <span>👁️ Views: ${data.views || 0}</span>
-                            <span>❤️ Likes: ${totalReactions}</span>
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch (error) {
-                container.innerHTML = 'Failed to load articles.';
-            }
-        }
+      await db.collection('news').add(doc);
+      alert('Published');
+      clearForm();
+      loadArticlesAdmin();
+    }catch(e){ console.error(e); alert('Publish failed: '+e.message) }
+  }
 
-        // 7. एडिट के लिए लोड करना
-        async function loadArticleForEdit(docId) {
-            const doc = await db.collection('news').doc(docId).get();
-            if (!doc.exists) return;
-            const data = doc.data();
-            
-            formTitle.textContent = 'Edit Article';
-            document.getElementById('title').value = data.title;
-            document.getElementById('content').value = data.content;
-            document.getElementById('category').value = data.category;
-            document.getElementById('imageUrl').value = data.imageUrl || ''; // NAYA
-            editModeIdInput.value = docId;
-            
-            submitBtn.textContent = 'Update Article';
-            cancelEditBtn.style.display = 'inline-block';
-            window.scrollTo(0, 0);
-        }
-        
-        // 8. एडिट कैंसिल करना
-        function cancelEditMode() {
-            formTitle.textContent = 'Create New Article';
-            newsForm.reset();
-            editModeIdInput.value = '';
-            submitBtn.textContent = 'Post Article';
-            cancelEditBtn.style.display = 'none';
-        }
+  // load existing
+  async function loadArticlesAdmin(){
+    const list = document.getElementById('articlesList');
+    list.innerHTML = 'Loading...';
+    const snap = await db.collection('news').orderBy('timestamp','desc').get();
+    if(snap.empty){ list.innerHTML = 'No articles'; return; }
+    list.innerHTML = '';
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const id = doc.id;
+      const title = d.title || '(no title)';
+      const item = document.createElement('div');
+      item.className='item';
+      item.innerHTML = `<div>
+        <div style="font-weight:800">${title}</div>
+        <div class="small">${d.category||''} • ${ (d.timestamp && d.timestamp.toDate)? d.timestamp.toDate().toLocaleString() : '' }</div>
+      </div>
+      <div>
+        <button class="btn" onclick="loadForEdit('${id}')">Edit</button>
+        <button class="danger" onclick="deleteArticle('${id}')">Delete</button>
+      </div>`;
+      list.appendChild(item);
+    });
+  }
 
-        // 9. आर्टिकल डिलीट करना
-        async function deleteArticle(docId) {
-            if (editModeIdInput.value === docId) { cancelEditMode(); }
-            if (confirm('Are you sure you want to delete this article?')) {
-                await db.collection('news').doc(docId).delete();
-                alert('Article deleted.');
-                loadExistingArticles();
-                loadDashboardStats(); // NAYA: आँकड़े रीफ़्रेश करें
-            }
-        }
-    </script>
+  async function loadForEdit(id){
+    const doc = await db.collection('news').doc(id).get();
+    if(!doc.exists) return alert('Not found');
+    const d = doc.data();
+    document.getElementById('editId').value = id;
+    document.getElementById('title').value = d.title||'';
+    document.getElementById('content').value = d.content||'';
+    document.getElementById('category').value = d.category||'Rajasthan';
+    document.getElementById('imageUrl').value = d.imageUrl||'';
+    document.getElementById('updateBtn').style.display='inline-block';
+    document.getElementById('cancelBtn').style.display='inline-block';
+    document.getElementById('publishBtn')?.style?.display='none';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
 
+  async function updateArticle(){
+    const id = document.getElementById('editId').value;
+    if(!id) return alert('No edit id');
+    try{
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const category = document.getElementById('category').value;
+      const file = document.getElementById('imageFile').files[0];
+      const imageUrlManual = document.getElementById('imageUrl').value.trim();
+
+      let imageUrl = imageUrlManual;
+      if(!imageUrl && file){
+        const ref = storage.ref('news_images/'+Date.now()+'_'+file.name);
+        const snap = await ref.put(file);
+        imageUrl = await snap.ref.getDownloadURL();
+      }
+
+      const data = { title, content, category };
+      if(imageUrl) data.imageUrl = imageUrl;
+
+      await db.collection('news').doc(id).update(data);
+      alert('Updated');
+      clearForm();
+      loadArticlesAdmin();
+    }catch(e){ console.error(e); alert('Update failed: '+e.message) }
+  }
+
+  async function deleteArticle(id){
+    if(!confirm('Delete?')) return;
+    await db.collection('news').doc(id).delete();
+    alert('Deleted');
+    loadArticlesAdmin();
+  }
+
+  function cancelEdit(){
+    clearForm();
+  }
+  function clearForm(){
+    document.getElementById('editId').value='';
+    document.getElementById('title').value='';
+    document.getElementById('content').value='';
+    document.getElementById('imageFile').value='';
+    document.getElementById('imageUrl').value='';
+    document.getElementById('updateBtn').style.display='none';
+    document.getElementById('cancelBtn').style.display='none';
+  }
+
+  // Auto-suggest: when admin first time logs in, if user not created in auth, instruct admin
+  // NOTE: Creating users with email/password programmatically requires admin SDK or console.
+</script>
 </body>
 </html>
