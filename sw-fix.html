@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixing Service Worker...</title>
+    <style>
+        body { font-family: sans-serif; background: #111; color: #fff; padding: 20px; font-size: 1.2rem; }
+        h1 { color: #ffaa00; }
+        #status { color: #00d4ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>TRUVANI - Website Fixer</h1>
+    <p>Please wait... Attempting to unregister (delete) all old Service Workers.</p>
+    <p>Status: <span id="status">Starting...</span></p>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            document.getElementById('status').textContent = 'Looking for old workers...';
+            
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                if (registrations.length === 0) {
+                    document.getElementById('status').textContent = 'No old workers found. Everything should be okay. Please try opening index.html now.';
+                    alert('Koi purana worker nahi mila. Aap ab index.html khol sakte hain.');
+                    return;
+                }
+                
+                let unregisterPromises = registrations.map(function(registration) {
+                    console.log('Unregistering (deleting) old worker:', registration);
+                    return registration.unregister();
+                });
+                
+                Promise.all(unregisterPromises).then(() => {
+                    document.getElementById('status').innerHTML = '<strong>SUCCESS!</strong> All old Service Workers have been removed.';
+                    
+                    // Cache bhi delete kar do
+                    if (window.caches) {
+                        caches.keys().then(function(cacheNames) {
+                            cacheNames.forEach(function(cacheName) {
+                                console.log('Deleting cache:', cacheName);
+                                caches.delete(cacheName);
+                            });
+                        });
+                    }
+                    
+                    alert('FIX COMPLETE! Sabhi purani fassi hui files delete ho gayi hain. Ab main page ko reload kar raha hoon.');
+                    // Force reload the main page, bypassing cache
+                    window.location.href = 'index.html?cacheBust=' + new Date().getTime();
+                    
+                });
+                
+            }).catch(function(err) {
+                document.getElementById('status').textContent = 'Error during fix: ' + err;
+                alert('Fix karne mein error aaya: ' + err);
+            });
+            
+        } else {
+            document.getElementById('status').textContent = 'Service Workers are not supported in this browser.';
+            alert('Service Workers support nahi karte.');
+        }
+    </script>
+</body>
+</html>
