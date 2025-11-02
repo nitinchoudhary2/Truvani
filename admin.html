@@ -1,55 +1,67 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin - Truvani</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Truvani News</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .admin-box {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+  </style>
 </head>
 <body>
-  <header class="navbar">
-    <div class="logo"><div class="title">TRUVANI ADMIN</div></div>
-    <div class="controls">
-      <button id="logoutBtn" class="btn" style="display:none">Logout</button>
-      <a href="index.html" class="btn">Site</a>
-    </div>
-  </header>
+  <div class="admin-box">
+    <h2>Add News</h2>
+    <input type="text" id="title" placeholder="News Title" />
+    <textarea id="content" placeholder="News Content"></textarea>
+    <button id="addNews">Add News</button>
+  </div>
 
-  <main class="admin-wrap">
-    <div id="authArea" class="form-card">
-      <h3>Login (Admin)</h3>
-      <input id="email" class="input" type="email" placeholder="Email">
-      <input id="password" class="input" type="password" placeholder="Password" style="margin-top:8px">
-      <div style="margin-top:10px">
-        <button id="loginBtn" class="btn">Login</button>
-      </div>
-      <div id="authMsg" style="margin-top:10px;color:var(--muted)"></div>
-    </div>
+  <script type="module">
+    import { db, addDoc, collection, serverTimestamp } from "./firebase-config.js";
 
-    <div id="adminArea" style="display:none">
-      <div class="form-card">
-        <h3 id="formTitle">Create New Article</h3>
-        <input id="title" class="input" placeholder="Title">
-        <textarea id="content" class="input" placeholder="Content" style="margin-top:8px"></textarea>
-        <div style="display:flex;gap:10px;margin-top:8px">
-          <input id="imageUrl" class="input" placeholder="Image URL (optional)">
-          <select id="category" class="input" style="max-width:180px">
-            <option>Rajasthan</option><option>National</option><option>World</option><option>Sports</option>
-          </select>
-        </div>
-        <div style="margin-top:10px">
-          <button id="postBtn" class="btn">Post Article</button>
-          <button id="cancelEdit" class="btn" style="background:#6c757d;display:none">Cancel</button>
-        </div>
-      </div>
-
-      <div style="margin-top:16px">
-        <h3>Existing Articles</h3>
-        <div id="articlesList">Loading...</div>
-      </div>
-    </div>
-  </main>
-
-  <script type="module" src="admin.js"></script>
+    document.getElementById("addNews").addEventListener("click", async () => {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      if (!title || !content) return alert("Fill all fields!");
+      try {
+        await addDoc(collection(db, "news"), {
+          title,
+          content,
+          createdAt: serverTimestamp(),
+          reactions: {}
+        });
+        alert("News added!");
+        location.reload();
+      } catch (e) {
+        alert("Error adding news: " + e.message);
+      }
+    });
+  </script>
 </body>
 </html>
