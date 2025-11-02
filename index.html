@@ -1,24 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Truvani News</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="navbar">
-    <h1>📰 Truvani News</h1>
+    <div class="logo">
+      <img src="https://via.placeholder.com/28x28.png?text=T" alt="logo" style="border-radius:6px">
+      <div>
+        <div class="title">TRUVANI NEWS</div>
+        <div style="font-size:11px;color:var(--muted)">Your Trusted News</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search-box">
+        <input id="searchInput" placeholder="Search news..." />
+        <button class="lang-toggle" id="themeToggle">Theme</button>
+      </div>
+      <a href="admin.html" class="btn">Admin</a>
+    </div>
   </header>
 
-  <main id="news-container" class="news-container">
-    <p>Loading latest news...</p>
+  <main class="container">
+    <div id="newsWrapper">
+      <div id="news-loading" style="color:var(--muted);padding:12px">Loading latest news...</div>
+      <div id="news-container" class="news-container"></div>
+    </div>
   </main>
 
   <footer>
-    <p>© 2025 Truvani News | All Rights Reserved</p>
+    © <span id="year"></span> Truvani News | All Rights Reserved
   </footer>
 
   <script type="module" src="app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
