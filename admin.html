@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Truvani News</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <h2>🛠 Admin Panel</h2>
+
+    <input type="text" id="adminEmail" placeholder="Enter email" />
+    <input type="password" id="adminPassword" placeholder="Enter password" />
+    <button id="loginBtn">Login</button>
+
+    <div id="adminSection" style="display:none;">
+      <h3>Add New News 📰</h3>
+      <input type="text" id="newsTitle" placeholder="News Title" />
+      <textarea id="newsContent" placeholder="News Content"></textarea>
+      <button id="addNewsBtn">Add News</button>
+
+      <div id="allNews"></div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
