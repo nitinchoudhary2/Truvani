@@ -1,37 +1,68 @@
-// (यह app.js फ़ाइल है)
+// 🔥 Advanced app.js for Truvani News
 
-// Firebase services को import करें
-import { db, FieldValue } from './firebase-config.js'; // (आपकी Firebase config फ़ाइल)
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+// Firebase import
+import { db, FieldValue } from './firebase-config.js';
+import { collection, onSnapshot, doc, updateDoc, getDocs } from 'firebase/firestore';
 
 const newsContainer = document.getElementById('news-container');
+const loader = document.createElement('div');
+loader.innerHTML = `<div class="loader">Loading news...</div>`;
+newsContainer.appendChild(loader);
 
-// न्यूज़ लोड करने वाला फंक्शन
-async function loadNews() {
-  // ... (सारा loadNews का लॉजिक) ...
-  querySnapshot.forEach((doc) => {
-    // ...
-    newsElement.innerHTML = `
-      <h3>${newsData.title}</h3>
-      <div class="reactions">
-          <button class="reaction-btn" onclick="addReaction('${newsId}', '👍')">👍 ${likes}</button>
-          </div>
-    `;
-    newsContainer.appendChild(newsElement);
+// 🔹 Load news in real-time (no need to reload)
+function loadNewsRealtime() {
+  const q = collection(db, "news");
+
+  onSnapshot(q, (snapshot) => {
+    newsContainer.innerHTML = ""; // clear old news
+    if (snapshot.empty) {
+      newsContainer.innerHTML = "<p>No news available yet.</p>";
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const newsData = docSnap.data();
+      const newsId = docSnap.id;
+
+      const newsElement = document.createElement("div");
+      newsElement.classList.add("news-card");
+
+      const likes = newsData.reactions?.['👍'] || 0;
+      const hearts = newsData.reactions?.['❤️'] || 0;
+      const fires = newsData.reactions?.['🔥'] || 0;
+
+      newsElement.innerHTML = `
+        <h3>${newsData.title}</h3>
+        <p>${newsData.content || ""}</p>
+        <div class="reactions">
+          <button onclick="addReaction('${newsId}', '👍')">👍 ${likes}</button>
+          <button onclick="addReaction('${newsId}', '❤️')">❤️ ${hearts}</button>
+          <button onclick="addReaction('${newsId}', '🔥')">🔥 ${fires}</button>
+        </div>
+      `;
+
+      newsContainer.appendChild(newsElement);
+    });
   });
 }
 
-// रिएक्शन ऐड करने वाला फंक्शन
+// 🔹 Add reaction function
 window.addReaction = async (docId, reactionType) => {
   const docRef = doc(db, "news", docId);
-  await updateDoc(docRef, {
-    [`reactions.${reactionType}`]: FieldValue.increment(1)
-  });
-  
-  // नोट: पेज को रीलोड करें ताकि नया काउंट दिखे
-  // (या आप onSnapshot listener का इस्तेमाल कर सकते हैं)
-  location.reload(); 
+  try {
+    await updateDoc(docRef, {
+      [`reactions.${reactionType}`]: FieldValue.increment(1),
+    });
+  } catch (error) {
+    alert("Failed to add reaction: " + error.message);
+  }
 };
 
-// पेज लोड होते ही न्यूज़ लोड करें
-loadNews();
+// 🔹 Optional: Future Gemini AI suggestion
+async function suggestSummary(title, content) {
+  // (Future use - integrate Gemini AI summary)
+  console.log("Gemini AI Summary will suggest for:", title);
+}
+
+// 🔹 Load news on page start
+loadNewsRealtime();
