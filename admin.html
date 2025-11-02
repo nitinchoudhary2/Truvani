@@ -1,28 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Truvani News</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Truvani</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="admin-container">
-    <h2>🛠 Admin Panel</h2>
-
-    <input type="text" id="adminEmail" placeholder="Enter email" />
-    <input type="password" id="adminPassword" placeholder="Enter password" />
-    <button id="loginBtn">Login</button>
-
-    <div id="adminSection" style="display:none;">
-      <h3>Add New News 📰</h3>
-      <input type="text" id="newsTitle" placeholder="News Title" />
-      <textarea id="newsContent" placeholder="News Content"></textarea>
-      <button id="addNewsBtn">Add News</button>
-
-      <div id="allNews"></div>
+  <header class="navbar">
+    <div class="logo"><div class="title">TRUVANI ADMIN</div></div>
+    <div class="controls">
+      <button id="logoutBtn" class="btn" style="display:none">Logout</button>
+      <a href="index.html" class="btn">Site</a>
     </div>
-  </div>
+  </header>
+
+  <main class="admin-wrap">
+    <div id="authArea" class="form-card">
+      <h3>Login (Admin)</h3>
+      <input id="email" class="input" type="email" placeholder="Email">
+      <input id="password" class="input" type="password" placeholder="Password" style="margin-top:8px">
+      <div style="margin-top:10px">
+        <button id="loginBtn" class="btn">Login</button>
+      </div>
+      <div id="authMsg" style="margin-top:10px;color:var(--muted)"></div>
+    </div>
+
+    <div id="adminArea" style="display:none">
+      <div class="form-card">
+        <h3 id="formTitle">Create New Article</h3>
+        <input id="title" class="input" placeholder="Title">
+        <textarea id="content" class="input" placeholder="Content" style="margin-top:8px"></textarea>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <input id="imageUrl" class="input" placeholder="Image URL (optional)">
+          <select id="category" class="input" style="max-width:180px">
+            <option>Rajasthan</option><option>National</option><option>World</option><option>Sports</option>
+          </select>
+        </div>
+        <div style="margin-top:10px">
+          <button id="postBtn" class="btn">Post Article</button>
+          <button id="cancelEdit" class="btn" style="background:#6c757d;display:none">Cancel</button>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <h3>Existing Articles</h3>
+        <div id="articlesList">Loading...</div>
+      </div>
+    </div>
+  </main>
 
   <script type="module" src="admin.js"></script>
 </body>
