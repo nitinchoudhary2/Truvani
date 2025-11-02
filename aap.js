@@ -1,20 +1,12 @@
-// 🔥 Advanced app.js for Truvani News
-
-// Firebase import
-import { db, FieldValue } from './firebase-config.js';
-import { collection, onSnapshot, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { db, collection, onSnapshot, doc, updateDoc } from './firebase-config.js';
 
 const newsContainer = document.getElementById('news-container');
-const loader = document.createElement('div');
-loader.innerHTML = `<div class="loader">Loading news...</div>`;
-newsContainer.appendChild(loader);
 
-// 🔹 Load news in real-time (no need to reload)
 function loadNewsRealtime() {
   const q = collection(db, "news");
 
   onSnapshot(q, (snapshot) => {
-    newsContainer.innerHTML = ""; // clear old news
+    newsContainer.innerHTML = "";
     if (snapshot.empty) {
       newsContainer.innerHTML = "<p>No news available yet.</p>";
       return;
@@ -24,45 +16,27 @@ function loadNewsRealtime() {
       const newsData = docSnap.data();
       const newsId = docSnap.id;
 
-      const newsElement = document.createElement("div");
-      newsElement.classList.add("news-card");
-
-      const likes = newsData.reactions?.['👍'] || 0;
-      const hearts = newsData.reactions?.['❤️'] || 0;
-      const fires = newsData.reactions?.['🔥'] || 0;
-
-      newsElement.innerHTML = `
+      const newsCard = document.createElement('div');
+      newsCard.classList.add('news-card');
+      newsCard.innerHTML = `
         <h3>${newsData.title}</h3>
-        <p>${newsData.content || ""}</p>
+        <p>${newsData.content}</p>
         <div class="reactions">
-          <button onclick="addReaction('${newsId}', '👍')">👍 ${likes}</button>
-          <button onclick="addReaction('${newsId}', '❤️')">❤️ ${hearts}</button>
-          <button onclick="addReaction('${newsId}', '🔥')">🔥 ${fires}</button>
+          <button onclick="addReaction('${newsId}', '👍')">👍 ${newsData.reactions?.['👍'] || 0}</button>
+          <button onclick="addReaction('${newsId}', '❤️')">❤️ ${newsData.reactions?.['❤️'] || 0}</button>
+          <button onclick="addReaction('${newsId}', '🔥')">🔥 ${newsData.reactions?.['🔥'] || 0}</button>
         </div>
       `;
-
-      newsContainer.appendChild(newsElement);
+      newsContainer.appendChild(newsCard);
     });
   });
 }
 
-// 🔹 Add reaction function
-window.addReaction = async (docId, reactionType) => {
-  const docRef = doc(db, "news", docId);
-  try {
-    await updateDoc(docRef, {
-      [`reactions.${reactionType}`]: FieldValue.increment(1),
-    });
-  } catch (error) {
-    alert("Failed to add reaction: " + error.message);
-  }
+window.addReaction = async (id, type) => {
+  const docRef = doc(db, "news", id);
+  await updateDoc(docRef, {
+    [`reactions.${type}`]: firebase.firestore.FieldValue.increment(1),
+  });
 };
 
-// 🔹 Optional: Future Gemini AI suggestion
-async function suggestSummary(title, content) {
-  // (Future use - integrate Gemini AI summary)
-  console.log("Gemini AI Summary will suggest for:", title);
-}
-
-// 🔹 Load news on page start
 loadNewsRealtime();
