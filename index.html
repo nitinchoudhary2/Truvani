@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TRUVANI - Advanced News</title>
+
+  <!-- Firebase compat (simple integration) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+
+  <style>
+    :root{
+      --p:#e63946; --a:#00d4ff; --bg:#0b0b0b; --card:#111;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#121212);color:#eee;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    header{position:sticky;top:0;background:linear-gradient(90deg,#070707, #0f0f0f);border-bottom:1px solid rgba(255,255,255,0.03);z-index:90}
+    .top{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:12px}
+    .brand{font-weight:900;font-size:20px;background:linear-gradient(45deg,var(--p),var(--a));-webkit-background-clip:text;color:transparent}
+    .controls{display:flex;gap:10px;align-items:center}
+    .btn{background:var(--a);color:#000;padding:8px 12px;border-radius:12px;border:none;cursor:pointer;font-weight:700}
+    .search{background:var(--glass);padding:6px 10px;border-radius:999px;display:flex;gap:8px;align-items:center}
+    .search input{background:transparent;border:0;color:#fff;outline:none;width:160px}
+
+    .container{max-width:1200px;margin:26px auto;padding:0 14px}
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:24px}
+    .main{min-height:200px}
+    .sidebar{position:relative}
+    .card{background:linear-gradient(180deg,var(--card),#0f0f0f);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+    .article{display:flex;gap:16px;margin-bottom:18px;border-radius:12px;overflow:hidden}
+    .article img{width:220px;height:140px;object-fit:cover;border-radius:10px}
+    .article .meta{flex:1}
+    .tag{display:inline-block;background:var(--a);color:#000;padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
+
+    .top-feat{display:flex;gap:16px;margin-bottom:18px}
+    .feat-img{flex:1;min-height:220px;border-radius:12px;overflow:hidden}
+    .feat-img img{width:100%;height:100%;object-fit:cover}
+
+    .small{font-size:13px;color:#aaa}
+    .actions{display:flex;gap:8px;align-items:center}
+    .bookmark-btn{background:transparent;border:2px solid #ffd700;color:#ffd700;padding:6px 12px;border-radius:12px;cursor:pointer}
+
+    /* responsive */
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}.article img{display:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top">
+      <div class="brand">TRUVANI — Advanced</div>
+      <div class="controls">
+        <div class="search">
+          <input id="searchBox" placeholder="Search news / AI search..." />
+          <button class="btn" onclick="doSearch()">Search</button>
+        </div>
+        <button id="themeBtn" class="btn" onclick="toggleTheme()">Theme</button>
+        <a href="rajasthan.html" class="btn">Rajasthan</a>
+        <a href="admin.html" class="btn">Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section class="main">
+        <div id="featured" class="card top-feat" style="display:none">
+          <div class="feat-img" id="featImg"></div>
+          <div style="flex:1;padding:6px">
+            <div id="featTag" class="tag"></div>
+            <h2 id="featTitle"></h2>
+            <p id="featExcerpt" class="small"></p>
+            <div style="margin-top:12px">
+              <button class="btn" onclick="openArticle(currentFeaturedId)">Read Full</button>
+              <button class="bookmark-btn" id="bookmarkFeat" onclick="toggleBookmark(currentFeaturedId)">☆ Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="articlesList" class="card"></div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="card" style="margin-bottom:12px">
+          <h3>Filters</h3>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button onclick="filterAll()" class="btn">All</button>
+            <button onclick="filterCategory('Rajasthan')" class="btn">Rajasthan</button>
+            <button onclick="filterCategory('National')" class="btn">National</button>
+            <button onclick="filterCategory('World')" class="btn">World</button>
+            <button onclick="filterCategory('Sports')" class="btn">Sports</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:12px">
+          <h4>Bookmarks (<span id="bmCount">0</span>)</h4>
+          <div id="bookmarksList" class="small" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card">
+          <h4>Quick Actions</h4>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <button class="btn" onclick="openVoice()">Voice Read</button>
+            <button class="btn" onclick="showNotification('New Article will appear here')">Test Notify</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" style="position:fixed;right:18px;bottom:18px;background:#111;padding:12px 16px;border-radius:10px;border-left:4px solid var(--a);display:none;color:#fff"></div>
+
+  <script>
+    // =========== Firebase config ===========
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.firebasestorage.app",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // enable offline persistence
+    db.enablePersistence().catch(e => console.warn('Persistence:', e.message));
+
+    // =========== UI helpers ===========
+    function showToast(msg, t=3000){
+      const T = document.getElementById('toast');
+      T.textContent = msg; T.style.display='block';
+      setTimeout(()=>T.style.display='none', t);
+    }
+
+    // bookmark system (local)
+    function loadBookmarksUI(){
+      const bm = JSON.parse(localStorage.getItem('bookmarks')||'[]');
+      document.getElementById('bmCount').textContent = bm.length;
+      const list = document.getElementById('bookmarksList');
+      if(!bm.length) list.innerHTML = '<div style="color:#aaa">No bookmarks</div>';
+      else list.innerHTML = bm.map(b=>`<div style="margin-bottom:6px"><a href="#" onclick="openArticle('${b.id}')">${b.title}</a></div>`).join('');
+    }
+    function toggleBookmark(id, title){
+      let bm = JSON.parse(localStorage.getItem('bookmarks')||'[]');
+      const i = bm.findIndex(x=>x.id===id);
+      if(i>-1){ bm.splice(i,1); showToast('Bookmark removed'); }
+      else { bm.push({id,title:title||document.title}); showToast('Bookmark saved'); }
+      localStorage.setItem('bookmarks', JSON.stringify(bm));
+      loadBookmarksUI();
+    }
+
+    // =========== Realtime loading ===========
+    let currentFeaturedId = null;
+    const articlesList = document.getElementById('articlesList');
+
+    const articlesRef = db.collection('news').orderBy('timestamp','desc').limit(30);
+    articlesRef.onSnapshot(snapshot=>{
+      const docs = [];
+      snapshot.forEach(doc=>docs.push({id:doc.id, ...doc.data()}));
+      renderArticles(docs);
+    }, err => {
+      articlesList.innerHTML = '<div style="color:#f44">Error loading</div>';
+      console.error(err);
+    });
+
+    function renderArticles(docs){
+      if(!docs.length){ articlesList.innerHTML = '<div class="small">No news yet</div>'; return; }
+      // featured = first
+      const feat = docs[0];
+      currentFeaturedId = feat.id;
+      document.getElementById('featured').style.display = 'flex';
+      document.getElementById('featImg').innerHTML = `<img src="${feat.imageUrl||'https://via.placeholder.com/900x300'}" style="width:100%;height:220px;object-fit:cover;border-radius:8px">`;
+      document.getElementById('featTag').textContent = feat.category||'NEWS';
+      document.getElementById('featTitle').textContent = feat.title||'Untitled';
+      document.getElementById('featExcerpt').textContent = (feat.content||'').slice(0,220)+'...';
+
+      // list others
+      const others = docs.slice(1);
+      articlesList.innerHTML = others.map(a=>`
+        <div class="article">
+          <img src="${a.imageUrl||'https://via.placeholder.com/400'}" alt="">
+          <div class="meta">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><span class="tag small">${a.category||'NEWS'}</span></div>
+              <div class="small">${(a.timestamp && a.timestamp.toDate)? a.timestamp.toDate().toLocaleString() : ''}</div>
+            </div>
+            <h3 style="margin:8px 0">${a.title}</h3>
+            <p class="small">${(a.content||'').slice(0,180)}...</p>
+            <div style="margin-top:8px" class="actions">
+              <button class="btn" onclick="openArticle('${a.id}')">Open</button>
+              <button class="bookmark-btn" onclick="toggleBookmark('${a.id}','${escapeHtml(a.title||'') }')">☆ Save</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      loadBookmarksUI();
+    }
+
+    function openArticle(id){
+      // increment view counter (transaction safe)
+      const ref = db.collection('news').doc(id);
+      ref.update({ views: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
+      // open article page (article.html?id=...)
+      window.location.href = `article.html?id=${id}`;
+    }
+
+    // filters & search
+    function filterCategory(cat){
+      db.collection('news').where('category','==',cat).orderBy('timestamp','desc').get().then(snap=>{
+        const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); renderArticles(arr);
+      });
+    }
+    function filterAll(){ articlesRef.get().then(s=>{ const arr=[]; s.forEach(d=>arr.push({id:d.id,...d.data()})); renderArticles(arr); }); }
+    function doSearch(){
+      const q = document.getElementById('searchBox').value.trim().toLowerCase();
+      if(!q) { filterAll(); return; }
+      db.collection('news').orderBy('timestamp','desc').limit(100).get().then(snap=>{
+        const arr=[];
+        snap.forEach(d=>{
+          const data = d.data();
+          if((data.title||'').toLowerCase().includes(q) || (data.content||'').toLowerCase().includes(q) ) arr.push({id:d.id,...data});
+        });
+        renderArticles(arr);
+      });
+    }
+
+    // small helpers
+    function escapeHtml(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+    // theme
+    function toggleTheme(){
+      if(document.body.style.backgroundColor==='white'){ document.body.style.background='linear-gradient(180deg,var(--bg),#121212)'; document.body.style.color='#eee'; }
+      else { document.body.style.background='white'; document.body.style.color='#111'; }
+    }
+
+    // voice read
+    function openVoice(){ showToast('Voice not implemented in demo'); }
+
+    // init bookmarks
+    loadBookmarksUI();
+  </script>
+</body>
+</html>
