@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUVANI NEWS - Your Trusted News Source</title>
+    
+    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #e63946;
+            --ai: #00d4ff;
+            --success: #00ff88;
+            --dark: #0a0a0a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--dark);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* Notification Bar */
+        .notification-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: linear-gradient(90deg, #ff0050, #ff6b35);
+            padding: 12px 20px; z-index: 10000;
+            display: none; text-align: center;
+            font-weight: bold; cursor: pointer;
+            animation: slideDown 0.5s ease;
+        }
+        .notification-bar.show { display: block; }
+        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed; top: 100px; left: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid var(--ai); border-radius: 50px;
+            padding: 10px 20px; cursor: pointer;
+            z-index: 1000; backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--ai); }
+        
+        body.light-mode {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+        body.light-mode header { background: #ffffff; }
+        body.light-mode .article-card { background: white; color: #1a1a1a; border-color: #ddd; }
+        body.light-mode .article-content p { color: #333; }
+        body.light-mode .theme-toggle,
+        body.light-mode .live-count,
+        body.light-mode .font-controls {
+            background: rgba(255,255,255,0.8);
+        }
+        body.light-mode .bookmarks-panel { background: rgba(255,255,255,0.95); color: #1a1a1a; }
+        body.light-mode .trending-item,
+        body.light-mode .reaction-btn { background: rgba(0,0,0,0.05); }
+        
+        /* Reading Progress */
+        .reading-progress {
+            position: fixed; top: 0; left: 0; height: 4px;
+            background: linear-gradient(90deg, var(--ai), var(--primary));
+            z-index: 9999; transition: width 0.1s;
+        }
+        
+        /* Voice Controls */
+        .voice-controls {
+            position: fixed; bottom: 30px; left: 30px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid var(--ai); border-radius: 20px;
+            padding: 15px 25px; z-index: 1000;
+            display: none; backdrop-filter: blur(10px);
+        }
+        .voice-controls.active { display: flex; gap: 15px; align-items: center; }
+        .voice-btn {
+            background: var(--ai); color: black;
+            border: none; padding: 10px 20px;
+            border-radius: 15px; cursor: pointer;
+            font-weight: bold; transition: all 0.3s;
+        }
+        .voice-btn:hover { transform: scale(1.1); }
+        
+        /* Bookmarks */
+        .bookmark-btn {
+            background: rgba(255,215,0,0.2);
+            border: 2px solid gold; color: gold;
+            padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s;
+            font-weight: bold; display: inline-block;
+        }
+        .bookmark-btn.saved { background: gold; color: black; }
+        
+        .bookmarks-panel {
+            position: fixed; right: -400px;
+            top: 0; bottom: 0; width: 400px;
+            background: rgba(0,0,0,0.95);
+            border-left: 2px solid var(--ai);
+            padding: 30px; overflow-y: auto;
+            z-index: 2000; transition: right 0.3s;
+        }
+        .bookmarks-panel.open { right: 0; }
+        
+        /* Share Buttons */
+        .share-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .share-btn {
+            padding: 10px 20px; border: 2px solid;
+            border-radius: 20px; cursor: pointer;
+            transition: all 0.3s; font-weight: bold;
+        }
+        .share-whatsapp { border-color: #25D366; color: #25D366; }
+        .share-whatsapp:hover { background: #25D366; color: white; }
+        .share-twitter { border-color: #1DA1F2; color: #1DA1F2; }
+        .share-twitter:hover { background: #1DA1F2; color: white; }
+        .share-copy { border-color: var(--ai); color: var(--ai); }
+        .share-copy:hover { background: var(--ai); color: black; }
+        
+        /* Image Zoom */
+        .image-modal {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000; cursor: zoom-out;
+            padding: 50px;
+        }
+        .image-modal.active { display: flex; align-items: center; justify-content: center; }
+        .image-modal img {
+            max-width: 90%; max-height: 90%;
+            object-fit: contain;
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* Reading Time */
+        .reading-time {
+            background: rgba(0,212,255,0.2);
+            color: var(--ai); padding: 5px 15px;
+            border-radius: 15px; font-size: 12px;
+            display: inline-block; margin: 10px 0;
+        }
+        
+        /* Live Count */
+        .live-count {
+            position: fixed; top: 150px; left: 20px;
+            background: rgba(0,255,136,0.2);
+            border: 2px solid var(--success);
+            border-radius: 15px; padding: 15px 20px;
+            z-index: 1000; text-align: center;
+        }
+        .live-count .pulse {
+            display: inline-block; width: 10px; height: 10px;
+            background: var(--success); border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 8px;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+        
+        /* Reactions */
+        .reactions { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .reaction-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s;
+            font-size: 18px;
+        }
+        .reaction-btn:hover { transform: scale(1.2); border-color: var(--ai); }
+        .reaction-btn.active {
+            background: var(--ai); border-color: var(--ai);
+            animation: bounce 0.5s;
+        }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        
+        /* Scroll to Top */
+        .scroll-top {
+            position: fixed; bottom: 30px; right: 30px;
+            background: var(--primary); color: white;
+            width: 50px; height: 50px; border-radius: 50%;
+            display: none; align-items: center;
+            justify-content: center; font-size: 24px;
+            cursor: pointer; z-index: 1000; transition: all 0.3s;
+        }
+        .scroll-top.show { display: flex; }
+        .scroll-top:hover { transform: scale(1.2); box-shadow: 0 5px 20px var(--primary); }
+        
+        /* Font Controls */
+        .font-controls {
+            position: fixed; top: 200px; left: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid var(--ai); border-radius: 15px;
+            padding: 15px; z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .font-btn {
+            background: rgba(0,212,255,0.2);
+            border: 2px solid var(--ai); color: white;
+            padding: 8px 15px; margin: 5px;
+            border-radius: 10px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .font-btn:hover { background: var(--ai); color: black; }
+        
+        /* Article Card */
+        .article-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(0,212,255,0.3);
+            border-radius: 15px; margin-bottom: 30px;
+            overflow: hidden; transition: all 0.3s;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,212,255,0.4);
+        }
+        .article-card img {
+            width: 100%; height: 300px;
+            object-fit: cover; cursor: zoom-in;
+        }
+        .article-content { padding: 25px; }
+        .article-content p { font-size: 16px; color: #ccc; line-height: 1.6; }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 20px; border-bottom: 2px solid var(--ai);
+            position: sticky; top: 0; z-index: 999;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1200px; margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center; padding: 50px;
+            font-size: 24px; color: var(--ai);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .theme-toggle, .live-count, .font-controls { display: none; }
+            .bookmarks-panel { width: 100%; right: -100%; }
+            .voice-controls { bottom: 80px; left: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress" id="readingProgress"></div>
+    
+    <div class="notification-bar" id="notificationBar" onclick="this.classList.remove('show')">
+        🔥 <span id="notificationText"></span>
+    </div>
+    
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeText">Dark</span>
+    </div>
+    
+    <div class="live-count">
+        <div><span class="pulse"></span>LIVE</div>
+        <div style="font-size: 24px; font-weight: bold; color: var(--success);" id="liveCount">0</div>
+        <div style="font-size: 12px; color: #aaa;">Online</div>
+    </div>
+    
+    <div class="font-controls">
+        <div style="margin-bottom: 10px; font-size: 12px; color: var(--ai);">Font</div>
+        <button class="font-btn" onclick="changeFontSize(-2)">A-</button>
+        <button class="font-btn" onclick="changeFontSize(0)">A</button>
+        <button class="font-btn" onclick="changeFontSize(2)">A+</button>
+    </div>
+    
+    <div class="voice-controls" id="voiceControls">
+        <button class="voice-btn" onclick="pauseReading()">⏸ Pause</button>
+        <button class="voice-btn" onclick="resumeReading()">▶ Play</button>
+        <button class="voice-btn" onclick="stopReading()">⏹ Stop</button>
+    </div>
+    
+    <div class="bookmarks-panel" id="bookmarksPanel">
+        <h2 style="color: gold; margin-bottom: 20px;">⭐ Bookmarks</h2>
+        <button onclick="closeBookmarks()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✖</button>
+        <div id="bookmarksList"></div>
+    </div>
+    
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <img id="modalImage" src="" alt="Zoomed">
+    </div>
+    
+    <div class="scroll-top" id="scrollTop" onclick="scrollToTop()">↑</div>
+    
+    <header>
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1 style="font-size: 32px; background: linear-gradient(45deg, var(--primary), var(--ai)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    TRUVANI NEWS
+                </h1>
+                <p style="color: var(--ai); font-size: 12px;">Your Trusted News Source</p>
+            </div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button onclick="openBookmarks()" style="background: gold; color: black; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer;">
+                    ⭐ Bookmarks (<span id="bookmarkCount">0</span>)
+                </button>
+                <a href="admin.html" style="background: #ffc107; color: black; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: bold;">
+                    ⚙️ Admin
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <div class="loading" id="loading">Loading news...</div>
+        <div id="articlesContainer"></div>
+    </div>
+    
+    <script>
+        // Firebase Config - यह आपकी असली Config है
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+            authDomain: "truvani-news-5ac15.firebaseapp.com",
+            projectId: "truvani-news-5ac15",
+            storageBucket: "truvani-news-5ac15.firebasestorage.app",
+            messagingSenderId: "742142167141",
+            appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+        };
+        
+        let db, storage;
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        let currentFontSize = 16;
+        
+        // Initialize
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                if (!firebaseConfig.apiKey) {
+                    throw new Error("Firebase Config is missing");
+                }
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                storage = firebase.storage();
+                db.enablePersistence().catch(() => {});
+                loadArticles();
+                initFeatures();
+            } catch (e) {
+                console.error("Firebase Error:", e);
+                document.getElementById('loading').innerHTML = '<div style="color:#ff4444;">Error: Check Firebase config or Auth Domains.</div>';
+            }
+        });
+        
+        // Show Notification
+        function showNotification(msg) {
+            const bar = document.getElementById('notificationBar');
+            document.getElementById('notificationText').textContent = msg;
+            bar.classList.add('show');
+            setTimeout(() => bar.classList.remove('show'), 5000);
+        }
+        
+        // Toggle Theme
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (document.body.classList.contains('light-mode')) {
+                icon.textContent = '☀️'; text.textContent = 'Light';
+                localStorage.setItem('theme', 'light');
+            } else {
+                icon.textContent = '🌙'; text.textContent = 'Dark';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        if (localStorage.getItem('theme') === 'light') toggleTheme();
+        
+        // Reading Progress
+        window.addEventListener('scroll', () => {
+            const h = window.innerHeight;
+            const d = document.documentElement.scrollHeight - h;
+            const s = window.scrollY;
+            const p = (s / d) * 100;
+            document.getElementById('readingProgress').style.width = p + '%';
+            document.getElementById('scrollTop').classList.toggle('show', s > 300);
+        });
+        
+        // Voice Reading
+        function readArticle(text) {
+            if (speechSynthesis.speaking) speechSynthesis.cancel();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'hi-IN'; // Hindi
+            currentUtterance.rate = 0.9;
+            currentUtterance.onstart = () => {
+                document.getElementById('voiceControls').classList.add('active');
+                showNotification('🔊 Voice reading started');
+            };
+            currentUtterance.onend = () => {
+                document.getElementById('voiceControls').classList.remove('active');
+            };
+            speechSynthesis.speak(currentUtterance);
+        }
+        function pauseReading() { speechSynthesis.pause(); }
+        function resumeReading() { speechSynthesis.resume(); }
+        function stopReading() {
+            speechSynthesis.cancel();
+            document.getElementById('voiceControls').classList.remove('active');
+        }
+        
+        // Bookmarks
+        function toggleBookmark(id, title) {
+            let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            const i = bm.findIndex(b => b.id === id);
+            if (i > -1) {
+                bm.splice(i, 1);
+                showNotification('❌ Bookmark removed');
+            } else {
+                bm.push({ id, title, date: new Date().toISOString() });
+                showNotification('⭐ Bookmark added');
+            }
+            localStorage.setItem('bookmarks', JSON.stringify(bm));
+            document.getElementById('bookmarkCount').textContent = bm.length;
+            updateBookmarkBtn(id);
+        }
+        
+        function updateBookmarkBtn(id) {
+            const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            const btn = document.getElementById(`bookmark-${id}`);
+            if (btn) {
+                if (bm.some(b => b.id === id)) {
+                    btn.classList.add('saved');
+                    btn.textContent = '⭐ Saved';
+                } else {
+                    btn.classList.remove('saved');
+                    btn.textContent = '☆ Save';
+                }
+            }
+        }
+        
+        function openBookmarks() {
+            document.getElementById('bookmarksPanel').classList.add('open');
+            loadBookmarksList();
+        }
+        function closeBookmarks() {
+            document.getElementById('bookmarksPanel').classList.remove('open');
+        }
+        
+        function loadBookmarksList() {
+            const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            const list = document.getElementById('bookmarksList');
+            if (bm.length === 0) {
+                list.innerHTML = '<p style="color:#aaa;">No bookmarks</p>';
+                return;
+            }
+            list.innerHTML = bm.map(b => `
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid gold;">
+                    <h4 style="color: gold;">${b.title}</h4>
+                    <p style="font-size: 12px; color: #aaa; margin-top: 5px;">${new Date(b.date).toLocaleDateString()}</p>
+                    <button onclick="removeBookmark('${b.id}')" style="background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 15px; margin-top: 10px; cursor: pointer;">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeBookmark(id) {
+            let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            bm = bm.filter(b => b.id !== id);
+            localStorage.setItem('bookmarks', JSON.stringify(bm));
+            loadBookmarksList();
+            document.getElementById('bookmarkCount').textContent = bm.length;
+            updateBookmarkBtn(id);
+        }
+        
+        // Share
+        function shareWhatsApp(title, url) {
+            window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`, '_blank');
+        }
+        function shareTwitter(title, url) {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => showNotification('🔗 Link copied!'));
+        }
+        
+        // Image Zoom
+        function zoomImage(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').classList.add('active');
+        }
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+        
+        // Reading Time
+        function calcReadTime(text) {
+            const words = text.split(' ').length;
+            const mins = Math.ceil(words / 200);
+            return `📖 ${mins} min read`;
+        }
+        
+        // Reactions
+        async function addReaction(id, emoji) {
+            if (!db) return;
+            try {
+                const ref = db.collection('reactions').doc(`${id}_${emoji}`);
+                await ref.set({
+                    articleId: id, emoji,
+                    count: firebase.firestore.FieldValue.increment(1)
+                }, { merge: true });
+                const btn = document.getElementById(`reaction-${id}-${emoji}`);
+                if (btn) {
+                    btn.classList.add('active');
+                    setTimeout(() => btn.classList.remove('active'), 500);
+                    // 'onSnapshot' (नीचे) इसे ऑटो-अपडेट कर देगा, इसलिए 'get' की ज़रूरत नहीं
+                }
+            } catch (e) { console.error("Reaction Error:", e); showNotification("Reaction failed. Check Rules."); }
+        }
+        
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Font Size
+        function changeFontSize(change) {
+            if (change === 0) currentFontSize = 16;
+            else {
+                currentFontSize += change;
+                currentFontSize = Math.max(12, Math.min(24, currentFontSize));
+            }
+            document.querySelectorAll('.article-content p').forEach(p => {
+                p.style.fontSize = currentFontSize + 'px';
+            });
+            localStorage.setItem('fontSize', currentFontSize);
+            showNotification(`Font: ${currentFontSize}px`);
+        }
+        
+        const savedFont = localStorage.getItem('fontSize');
+        if (savedFont) currentFontSize = parseInt(savedFont);
+        
+        // Init Features
+        function initFeatures() {
+            const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            document.getElementById('bookmarkCount').textContent = bm.length;
+            
+            // Live count (simulated)
+            let count = Math.floor(Math.random() * 50) + 10;
+            document.getElementById('liveCount').textContent = count;
+            setInterval(() => {
+                count += Math.floor(Math.random() * 3) - 1;
+                count = Math.max(1, count);
+                document.getElementById('liveCount').textContent = count;
+            }, 5000);
+        }
+        
+        // Load Articles
+        async function loadArticles() {
+            if (!db) return;
+            try {
+                const loading = document.getElementById('loading');
+                const container = document.getElementById('articlesContainer');
+                
+                db.collection('news')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .onSnapshot((snapshot) => {
+                        loading.style.display = 'none';
+                        if (snapshot.empty) {
+                            container.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;">No articles yet</div>';
+                            return;
+                        }
+                        
+                        // Show notification for new article
+                        if (snapshot.docChanges().some(change => change.type === 'added' && !change.doc.metadata.fromCache)) {
+                            showNotification('🔥 New article published!');
+                        }
+                        
+                        container.innerHTML = '';
+                        snapshot.forEach((doc) => {
+                            const d = doc.data();
+                            const rt = calcReadTime(d.content || '');
+                            const url = `https://nitinchoudhary2.github.io/Truvani/article.html?id=${doc.id}`; // ⚠️ असली लिंक
+                            
+                            const article = document.createElement('div');
+                            article.className = 'article-card';
+                            article.innerHTML = `
+                                <img src="${d.imageUrl || 'https://images.unsplash.com/photo-1586227740560-8cf2732c1531?w=800'}" 
+                                     alt="${d.title}" onclick="zoomImage(this.src)">
+                                <div class="article-content">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                                        <span style="background: var(--ai); color: black; padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                            ${d.category || 'NEWS'}
+                                        </span>
+                                        <span class="reading-time">${rt}</span>
+                                    </div>
+                                    <h2 style="margin: 15px 0; font-size: 24px;">${d.title}</h2>
+                                    <p style="color: #ccc; margin-bottom: 15px; line-height: 1.6; font-size: ${currentFontSize}px;">${(d.content || '').substring(0, 200)}...</p>
+                                    
+                                    <div class="reactions">
+                                        <button class="reaction-btn" id="reaction-${doc.id}-👍" onclick="addReaction('${doc.id}', '👍')">👍 0</button>
+                                        <button class="reaction-btn" id="reaction-${doc.id}-❤️" onclick="addReaction('${doc.id}', '❤️')">❤️ 0</button>
+                                        <button class="reaction-btn" id="reaction-${doc.id}-🔥" onclick="addReaction('${doc.id}', '🔥')">🔥 0</button>
+                                        <button class="reaction-btn" id="reaction-${doc.id}-😮" onclick="addReaction('${doc.id}', '😮')">😮 0</button>
+                                    </div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; margin: 20px 0; padding: 20px 0; border-top: 1px solid rgba(0,212,255,0.3); border-bottom: 1px solid rgba(0,212,255,0.3); flex-wrap: wrap; gap: 15px;">
+                                        <div>
+                                            <div style="color: #aaa; font-size: 14px;">👤 ${d.author || 'Nitin Choudhary'}</div>
+                                            <div style="color: var(--ai); font-size: 12px; margin-top: 5px;">👁️ ${d.views || 0} views</div>
+                                        </div>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <button class="bookmark-btn" id="bookmark-${doc.id}" onclick="toggleBookmark('${doc.id}', \`${d.title}\`)">☆ Save</button>
+                                            <button onclick="readArticle(\`Headline: ${d.title}. Content: ${(d.content || '').replace(/`/g, '').substring(0, 500)}\`)" 
+                                                    style="background: var(--success); color: black; padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                                                🔊 Listen
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin: 20px 0;">
+                                        <h4 style="color: var(--ai); margin-bottom: 10px;">Share:</h4>
+                                        <div class="share-buttons">
+                                            <button class="share-btn share-whatsapp" onclick="shareWhatsApp(\`${d.title}\`, \`${url}\`)">WhatsApp</button>
+                                            <button class="share-btn share-twitter" onclick="shareTwitter(\`${d.title}\`, \`${url}\`)">Twitter</button>
+                                            <button class="share-btn share-copy" onclick="copyLink(\`${url}\`)">Copy Link</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(article);
+                            updateBookmarkBtn(doc.id); // चेक करें कि क्या यह बुकमार्क है
+                            loadReactions(doc.id); // 🔥 रिएक्शन्स को लोड करें
+                        });
+                        
+                    }, (error) => {
+                        console.error("Load Articles Error:", error);
+                        loading.innerHTML = '<div style="color:#ff4444;">Error loading articles. Check Rules.</div>';
+                    });
+            } catch (e) {
+                console.error("Load Articles Try-Catch Error:", e);
+                document.getElementById('loading').innerHTML = '<div style="color:#ff4444;">A fatal error occurred.</div>';
+            }
+        }
+        
+        // 🔥 रिएक्शन्स को 'लाइव' लोड करें
+        function loadReactions(articleId) {
+            if (!db) return;
+            db.collection('reactions').where('articleId', '==', articleId)
+                .onSnapshot((snapshot) => {
+                    snapshot.forEach((doc) => {
+                        const reaction = doc.data();
+                        const btn = document.getElementById(`reaction-${articleId}-${reaction.emoji}`);
+                        if (btn) {
+                            btn.innerHTML = `${reaction.emoji} ${reaction.count}`;
+                        }
+                    });
+                });
+        }
+        
+        // 🔥 'sw.js' (ऑफलाइन) को रजिस्टर करें
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/Truvani/sw.js') // ⚠️ 'Truvani/' पाथ ज़रूरी है
+                .then(() => console.log('SW registered'))
+                .catch((err) => console.error('SW registration failed:', err));
+        }
+
+    </script>
+</body>
+</html>
