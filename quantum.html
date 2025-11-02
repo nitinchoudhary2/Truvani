@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quantum - TRUVANI</title>
+<style>
+  :root{--accent:#00d4ff;--p:#e63946;--bg:#060606}
+  body{margin:0;background:linear-gradient(135deg,#070707,#10071a);color:#fff;font-family:system-ui}
+  header{padding:18px;border-bottom:3px solid var(--accent);background:linear-gradient(90deg,#070707,#0f0f1a)}
+  .wrap{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:900;background:linear-gradient(45deg,var(--p),var(--accent));-webkit-background-clip:text;color:transparent}
+  main{max-width:1100px;margin:24px auto;padding:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.03)}
+  .tag{display:inline-block;padding:6px 10px;background:var(--accent);color:#000;border-radius:999px;font-weight:800;margin-bottom:8px}
+  button{background:var(--accent);color:#000;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:800}
+  .ai-btn{background:#fff;color:#000;border-radius:999px;padding:12px 18px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div><div class="logo">TRUVANI QUANTUM</div><div style="color:var(--accent);font-size:12px">Next-gen insights</div></div>
+      <div><a href="index.html" style="color:#fff;text-decoration:none">Home</a></div>
+    </div>
+  </header>
+
+  <main>
+    <div style="display:flex;gap:12px;margin-bottom:18px;align-items:center">
+      <button class="ai-btn" onclick="runQuantum()">Run Quantum Analysis</button>
+      <button onclick="openAdmin()" style="background:var(--p);color:#fff;padding:8px;border-radius:8px;border:none">Admin</button>
+    </div>
+
+    <section class="grid" id="grid">
+      <div class="card">Loading quantum articles...</div>
+    </section>
+  </main>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+    authDomain: "truvani-news-5ac15.firebaseapp.com",
+    projectId: "truvani-news-5ac15",
+    storageBucket: "truvani-news-5ac15.appspot.com",
+    messagingSenderId: "742142167141",
+    appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // load everything category = 'Quantum'
+  db.collection('news').where('category','==','Quantum').orderBy('timestamp','desc').onSnapshot(s => {
+    const grid = document.getElementById('grid'); grid.innerHTML = '';
+    if (s.empty){ grid.innerHTML = '<div class="card">No quantum news yet</div>'; return; }
+    s.forEach(doc=>{
+      const d = doc.data();
+      const el = document.createElement('div'); el.className='card';
+      el.innerHTML = `<div class="tag">QUANTUM</div><h3>${escapeHTML(d.title||'')}</h3><p style="color:#ccc">${escapeHTML((d.content||'').substring(0,180))}...</p>
+        <div style="display:flex;justify-content:space-between;margin-top:12px">
+          <div style="color:#aaa">${d.author||''} • ${d.views||0} views</div>
+          <div><button onclick="summarize('${doc.id}')">AI Summary</button></div>
+        </div>`;
+      grid.appendChild(el);
+    });
+  });
+
+  function escapeHTML(s){ return (s+'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  // demo quantum actions
+  function runQuantum(){ alert('Running Quantum analysis (demo).'); showToast('Quantum', 'Analysis complete (demo)'); }
+  function summarize(id){ alert('Generating summary for ' + id + ' (demo)'); showToast('AI', 'Summary generated (demo)'); }
+  function openAdmin(){ location.href='admin.html' }
+
+  function showToast(t,m){
+    const n = document.createElement('div'); n.textContent = t + ': ' + m;
+    n.style.cssText='position:fixed;bottom:18px;left:18px;background:#111;padding:10px;border-radius:8px';
+    document.body.appendChild(n); setTimeout(()=>n.remove(),2500);
+  }
+</script>
+</body>
+</html>
