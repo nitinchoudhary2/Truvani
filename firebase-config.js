@@ -1,8 +1,8 @@
 // firebase-config.js
-// Put this file alongside your HTML and JS files and import where needed.
-// Replace values here if you ever change them in Firebase console.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, serverTimestamp, doc, updateDoc, deleteDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-export const FIREBASE_CONFIG = {
+const firebaseConfig = {
   apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
   authDomain: "truvani-news-5ac15.firebaseapp.com",
   projectId: "truvani-news-5ac15",
@@ -11,5 +11,6 @@ export const FIREBASE_CONFIG = {
   appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
 };
 
-// Gemini / Generative API key (if you want Gemini features)
-export const GEMINI_KEY = "AIzaSyD_o2dC-nxy-u8h6chlVFYhVpQ8P8E14Ic";
+export const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export { serverTimestamp, doc, updateDoc, deleteDoc, addDoc, collection };
