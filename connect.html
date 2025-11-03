@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact | Truvani News</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f6fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #007bff;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .contact-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 1rem;
+    }
+
+    .contact-info {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .contact-info p {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    .social-links {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .social-links a {
+      color: #007bff;
+      margin: 0 10px;
+      font-size: 1.5rem;
+      transition: 0.3s;
+    }
+
+    .social-links a:hover {
+      color: #0056b3;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input, textarea {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #007bff;
+      color: white;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .contact-container {margin: 1rem; padding: 1rem;}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>Truvani News</h2>
+  </header>
+
+  <div class="contact-container">
+    <h1>Contact Us</h1>
+
+    <div class="contact-info">
+      <p><strong>Email:</strong> contact@truvaninews.com</p>
+      <p><strong>Phone:</strong> 9462370</p>
+      <p><strong>Address:</strong> Rajasthan, Alwar – 301001</p>
+    </div>
+
+    <form id="contactForm">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <input type="email" id="email" placeholder="Your Email" required />
+      <textarea id="message" rows="5" placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+
+    <div class="social-links">
+      <a href="https://www.facebook.com/share/1JwswTNnaE/" title="Facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://x.com/Truvaninews" title="X (Twitter)" target="_blank"><i class="fab fa-x-twitter"></i></a>
+      <a href="https://www.youtube.com/@truvaninews" title="YouTube" target="_blank"><i class="fab fa-youtube"></i></a>
+      <a href="https://www.instagram.com/truvaninews?igsh=OGs3NnlzMGpzbWsw" title="Instagram" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 Truvani News. All Rights Reserved.
+  </footer>
+
+  <!-- ✅ Firebase Connection -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.appspot.com",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ✅ Form Submission
+    document.getElementById("contactForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      try {
+        await addDoc(collection(db, "messages"), {
+          name,
+          email,
+          message,
+          createdAt: serverTimestamp()
+        });
+
+        alert("✅ Message sent successfully!");
+        e.target.reset();
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("❌ Error sending message!");
+      }
+    });
+  </script>
+
+</body>
+</html>
