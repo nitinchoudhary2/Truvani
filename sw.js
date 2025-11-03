@@ -1,4 +1,3 @@
-// sw.js - Advanced Service Worker with AI Caching 🚀
 const CACHE_NAME = 'truvani-ai-v3.0';
 const DYNAMIC_CACHE = 'truvani-dynamic-v3.0';
 
@@ -7,6 +6,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/admin.html',
+  '/quantum.html',  // Added for Quantum page caching
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
