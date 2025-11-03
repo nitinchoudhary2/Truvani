@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Truvani News</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body { background: #f9f9f9; color: #333; }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky; top: 0; z-index: 100;
+    }
+    header h1 {
+      font-size: 1.5rem; color: #007bff;
+    }
+    nav a {
+      margin: 0 10px; color: #333; text-decoration: none;
+      font-weight: 500; transition: color 0.3s;
+    }
+    nav a:hover { color: #007bff; }
+
+    .search-box {
+      margin: 20px auto; text-align: center;
+    }
+    .search-box input {
+      width: 90%; max-width: 400px; padding: 10px;
+      border-radius: 30px; border: 1px solid #ccc;
+    }
+
+    .news-section {
+      text-align: center; padding: 20px;
+    }
+    .news-card {
+      background: #fff; border-radius: 10px; margin: 10px auto;
+      padding: 20px; max-width: 600px; box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      background: #fff; text-align: center; padding: 20px;
+      margin-top: 40px; border-top: 1px solid #ddd;
+    }
+    footer h3 {
+      margin-bottom: 10px; color: #007bff;
+    }
+    .social-icons a {
+      margin: 0 10px; font-size: 24px; color: #333;
+      transition: color 0.3s;
+    }
+    .social-icons a:hover {
+      color: #007bff;
+    }
+
+    .contact {
+      margin-top: 15px; font-size: 14px; color: #666;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.2rem; }
+      .news-card { width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📰 Truvani News</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Rajasthan</a>
+      <a href="#">Quantum</a>
+      <a href="#">About</a>
+    </nav>
+  </header>
+
+  <div class="search-box">
+    <input type="text" placeholder="🔍 Search news..." />
+  </div>
+
+  <section class="news-section">
+    <div class="news-card">
+      <h2>Welcome to Truvani News</h2>
+      <p>Your daily dose of trusted news and updates. Stay connected with Rajasthan and beyond!</p>
+    </div>
+    <div class="news-card">
+      <h3>Breaking News</h3>
+      <p>Website testing successful! Add your real API or RSS feed here for live updates.</p>
+    </div>
+  </section>
+
+  <footer>
+    <h3>📜 Truvani News</h3>
+    <p>Stay informed, stay ahead.</p>
+
+    <div class="social-icons">
+      <a href="#" title="Email"><i class="fa-solid fa-envelope"></i></a>
+      <a href="#" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      <a href="#" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="#" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+      <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+    </div>
+
+    <div class="contact">
+      📍 Rajasthan, Alwar – 301001 <br>
+      📞 +91 9462370*** <br>
+      © 2025 All Rights Reserved
+    </div>
+  </footer>
+
+</body>
+</html>
