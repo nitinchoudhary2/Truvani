@@ -1,85 +1,185 @@
-// sw.js (Service Worker) फ़ाइल का नया कोड
+// sw.js - Advanced Service Worker with AI Caching 🚀
+const CACHE_NAME = 'truvani-ai-v3.0';
+const DYNAMIC_CACHE = 'truvani-dynamic-v3.0';
 
-const CACHE_NAME = 'truvani-ai-cache-v2'; // v2 (वर्जन 2)
-
-// 🚨 आपकी ज़रूरी फ़ाइलें (आपके स्क्रीनशॉट के हिसाब से)
-const urlsToCache = [
-    '/',
-    '/index.html',
-    '/rajasthan.html',
-    '/contact.html',
-    '/article.html',
-    '/quantum.html',
-    '/manifest.json',
-    '/404.html',
-    // 🚨 अगर आपकी कोई मुख्य CSS या Logo फ़ाइल है, 
-    // तो उसका नाम भी यहाँ जोड़ें (जैसे '/style.css' या '/logo.png')
+// Critical files to cache immediately
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/admin.html',
+  '/manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js'
 ];
 
-// 1. Install (इंस्टॉल): जब सर्विस वर्कर पहली बार रजिस्टर होता है
+// Install Event - Cache static assets
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('SW: Cache opened');
-                // ऊपर दी गई सभी फ़ाइलों को कैश (save) करो
-                return cache.addAll(urlsToCache);
-            })
-    );
+  console.log('🚀 Service Worker: Installing...');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('📦 Service Worker: Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => self.skipWaiting())
+  );
 });
 
-// 2. Fetch (फेच): जब भी वेबसाइट कोई फ़ाइल (जैसे CSS, img, js) माँगती है
-self.addEventListener('fetch', (event) => {
-    // हम सिर्फ GET रिक्वेस्ट को कैश कर रहे हैं
-    if (event.request.method !== 'GET') {
-        return;
-    }
-
-    event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                // अगर फ़ाइल 'कैश' (Cache) में है, तो वहीं से दे दो
-                if (response) {
-                    // console.log('SW: Serving from Cache:', event.request.url);
-                    return response;
-                }
-
-                // अगर कैश में नहीं है, तो इंटरनेट से लाओ
-                // console.log('SW: Fetching from Network:', event.request.url);
-                return fetch(event.request).then(
-                    (fetchResponse) => {
-                        // और उसे भविष्य के लिए कैश में सेव भी कर लो
-                        return caches.open(CACHE_NAME).then((cache) => {
-                            // हम सिर्फ ज़रूरी फ़ाइलें कैश कर रहे हैं (Firebase डेटा नहीं)
-                            if (urlsToCache.includes(new URL(event.request.url).pathname)) {
-                                cache.put(event.request.clone(), fetchResponse.clone());
-                            }
-                            return fetchResponse;
-                        });
-                    }
-                ).catch(() => {
-                    // अगर इंटरनेट नहीं है और कैश में भी नहीं है,
-                    // तो 404 पेज दिखाओ
-                    return caches.match('/404.html');
-                });
-            })
-    );
-});
-
-// 3. Activate (एक्टिवेट): पुराने कैश को साफ करने के लिए
+// Activate Event - Clean old caches
 self.addEventListener('activate', (event) => {
-    const cacheWhitelist = [CACHE_NAME]; // सिर्फ v2 को रखो
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    // अगर कैश का नाम v2 नहीं है, तो उसे डिलीट कर दो
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        console.log('SW: Deleting old cache:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
+  console.log('✅ Service Worker: Activated');
+  
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cache) => {
+            if (cache !== CACHE_NAME && cache !== DYNAMIC_CACHE) {
+              console.log('🗑️ Service Worker: Deleting old cache:', cache);
+              return caches.delete(cache);
+            }
+          })
+        );
+      })
+      .then(() => self.clients.claim())
+  );
 });
+
+// Fetch Event - Network First, then Cache
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+  
+  // Skip Firebase API calls
+  if (url.origin.includes('firebase') || url.origin.includes('googleapis')) {
+    return;
+  }
+  
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        // Clone response for caching
+        const responseClone = response.clone();
+        
+        // Cache successful responses
+        if (response.status === 200) {
+          caches.open(DYNAMIC_CACHE)
+            .then((cache) => {
+              cache.put(request, responseClone);
+            });
+        }
+        
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(request)
+          .then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            
+            // Return offline page for navigation requests
+            if (request.mode === 'navigate') {
+              return caches.match('/index.html');
+            }
+            
+            // Return offline fallback
+            return new Response('Offline - Content not available', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: new Headers({
+                'Content-Type': 'text/plain'
+              })
+            });
+          });
+      })
+  );
+});
+
+// Background Sync - For offline posts
+self.addEventListener('sync', (event) => {
+  console.log('🔄 Service Worker: Background Sync');
+  
+  if (event.tag === 'sync-articles') {
+    event.waitUntil(syncArticles());
+  }
+});
+
+async function syncArticles() {
+  console.log('📡 Syncing pending articles...');
+  // Add your sync logic here
+}
+
+// Push Notifications
+self.addEventListener('push', (event) => {
+  console.log('🔔 Service Worker: Push notification received');
+  
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'Truvani News';
+  const options = {
+    body: data.body || 'New article published!',
+    icon: data.icon || 'https://cdn-icons-png.flaticon.com/512/3208/3208799.png',
+    badge: 'https://cdn-icons-png.flaticon.com/512/3208/3208799.png',
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'news-notification',
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'view',
+        title: 'View Article',
+        icon: 'https://cdn-icons-png.flaticon.com/512/3208/3208799.png'
+      },
+      {
+        action: 'close',
+        title: 'Close',
+        icon: 'https://cdn-icons-png.flaticon.com/512/3208/3208799.png'
+      }
+    ]
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Notification Click
+self.addEventListener('notificationclick', (event) => {
+  console.log('🔔 Notification clicked:', event.action);
+  
+  event.notification.close();
+  
+  if (event.action === 'view') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+});
+
+// Message from client
+self.addEventListener('message', (event) => {
+  console.log('💬 Service Worker: Message received', event.data);
+  
+  if (event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+  
+  if (event.data.action === 'clearCache') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cache) => caches.delete(cache))
+        );
+      })
+    );
+  }
+});
+
+console.log('✅ Service Worker: Loaded successfully');
