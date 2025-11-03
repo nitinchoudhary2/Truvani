@@ -1,8 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ✅ Firebase Config
+// 🔹 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
   authDomain: "truvani-news-5ac15.firebaseapp.com",
@@ -12,111 +13,114 @@ const firebaseConfig = {
   appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
 };
 
-// ✅ Initialize Firebase
+// 🔹 Init
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+const auth = getAuth(app);
 
-document.addEventListener("DOMContentLoaded", () => {
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const authArea = document.getElementById("authArea");
-  const adminArea = document.getElementById("adminArea");
-  const authMsg = document.getElementById("authMsg");
-  const postBtn = document.getElementById("postBtn");
-  const aiBtn = document.getElementById("aiGenerateBtn");
-  const cancelEdit = document.getElementById("cancelEdit");
-  const articlesList = document.getElementById("articlesList");
+// DOM elements
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const postBtn = document.getElementById("postBtn");
+const uploadProgress = document.getElementById("uploadProgress");
+const imageInput = document.getElementById("imageInput");
+const adminArea = document.getElementById("adminArea");
+const authArea = document.getElementById("authArea");
+const authMsg = document.getElementById("authMsg");
 
-  // 🔹 LOGIN
-  loginBtn.addEventListener("click", async () => {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    authMsg.innerText = "Logging in...";
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      authMsg.innerText = "✅ Login Successful!";
-      authArea.style.display = "none";
-      adminArea.style.display = "block";
-      logoutBtn.style.display = "block";
-      loadArticles(); // load existing news
-    } catch (e) {
-      authMsg.innerText = "❌ " + e.message;
-    }
-  });
-
-  // 🔹 LOGOUT
-  logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-    authArea.style.display = "block";
-    adminArea.style.display = "none";
-    logoutBtn.style.display = "none";
-  });
-
-  // 🔹 POST NEW ARTICLE
-  postBtn.addEventListener("click", async () => {
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const imageUrl = document.getElementById("imageUrl").value.trim();
-    const category = document.getElementById("category").value;
-    const subcategory = document.getElementById("subcategory").value;
-    const status = document.getElementById("status").value;
-
-    if (!title || !content) {
-      alert("Please enter title and content!");
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, "news"), {
-        title, content, imageUrl, category, subcategory, status,
-        createdAt: serverTimestamp()
-      });
-      alert("✅ Article Published!");
-      document.getElementById("title").value = "";
-      document.getElementById("content").value = "";
-      document.getElementById("imageUrl").value = "";
-      loadArticles();
-    } catch (e) {
-      alert("❌ " + e.message);
-    }
-  });
-
-  // 🔹 AI GENERATE (demo)
-  aiBtn.addEventListener("click", () => {
-    document.getElementById("content").value =
-      "🧠 AI Generated Sample News:\n\nToday, the Truvani News team achieved another milestone with new updates and better design!";
-  });
-
-  // 🔹 CANCEL EDIT (dummy)
-  cancelEdit.addEventListener("click", () => {
-    document.getElementById("formTitle").innerText = "📰 Create New Article";
-    cancelEdit.style.display = "none";
-  });
-
-  // 🔹 LOAD ARTICLES
-  async function loadArticles() {
-    articlesList.innerHTML = "<p>Loading articles...</p>";
-    const snap = await getDocs(collection(db, "news"));
-    articlesList.innerHTML = "";
-
-    snap.forEach(docSnap => {
-      const a = docSnap.data();
-      const item = document.createElement("div");
-      item.classList.add("article-item");
-      item.innerHTML = `
-        <h3>${a.title}</h3>
-        <p>${a.content.slice(0, 80)}...</p>
-        <small>${a.category || "General"}</small><br>
-        <button class="btn" data-id="${docSnap.id}"><i class="fa fa-trash"></i> Delete</button>
-      `;
-      item.querySelector("button").addEventListener("click", async () => {
-        await deleteDoc(doc(db, "news", docSnap.id));
-        alert("🗑️ Article deleted!");
-        loadArticles();
-      });
-      articlesList.appendChild(item);
-    });
+// 🔹 Login
+loginBtn.onclick = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    authArea.style.display = "none";
+    adminArea.style.display = "block";
+    logoutBtn.style.display = "block";
+    loadArticles();
+  } catch (e) {
+    authMsg.innerText = "Login failed! Check credentials.";
   }
-});
+};
+
+// 🔹 Logout
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  adminArea.style.display = "none";
+  authArea.style.display = "block";
+  logoutBtn.style.display = "none";
+};
+
+// 🔹 Upload Image
+uploadProgress.onclick = () => imageInput.click();
+let uploadedImageUrl = "";
+
+imageInput.onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const storageRef = ref(storage, "images/" + file.name);
+  uploadProgress.innerText = "Uploading...";
+  await uploadBytes(storageRef, file);
+  uploadedImageUrl = await getDownloadURL(storageRef);
+  uploadProgress.innerText = "✅ Uploaded";
+};
+
+// 🔹 Publish Article
+postBtn.onclick = async () => {
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const category = document.getElementById("category").value;
+  const subcategory = document.getElementById("subcategory").value;
+  const imageUrl = uploadedImageUrl || document.getElementById("imageUrl").value;
+
+  if (!title || !content) {
+    alert("Title and Content are required!");
+    return;
+  }
+
+  await addDoc(collection(db, "news"), {
+    title,
+    content,
+    category,
+    subcategory,
+    imageUrl,
+    createdAt: new Date(),
+    views: 0
+  });
+
+  alert("✅ Article Published!");
+  loadArticles();
+};
+
+// 🔹 Load Articles
+async function loadArticles() {
+  const articlesList = document.getElementById("articlesList");
+  articlesList.innerHTML = "";
+  const querySnapshot = await getDocs(collection(db, "news"));
+
+  querySnapshot.forEach((docSnap) => {
+    const a = docSnap.data();
+    const div = document.createElement("div");
+    div.classList.add("article-item");
+    div.innerHTML = `
+      <h3>${a.title}</h3>
+      <p>${a.content.slice(0, 100)}...</p>
+      <img src="${a.imageUrl}" width="100%">
+      <small>${a.category}</small> |
+      <small>${a.views || 0} Views</small>
+      <button class="btn deleteBtn" data-id="${docSnap.id}">🗑️ Delete</button>
+    `;
+    articlesList.appendChild(div);
+  });
+
+  // Delete buttons
+  document.querySelectorAll(".deleteBtn").forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute("data-id");
+      await deleteDoc(doc(db, "news", id));
+      loadArticles();
+    };
+  });
+}
