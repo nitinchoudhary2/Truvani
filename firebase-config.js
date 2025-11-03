@@ -5,15 +5,17 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+  authDomain: "truvani-news-5ac15.firebaseapp.com",
+  projectId: "truvani-news-5ac15",
+  storageBucket: "truvani-news-5ac15.appspot.com",
+  messagingSenderId: "742142167141",
+  appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+export { auth, db, storage };
