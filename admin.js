@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ✅ Firebase config
+// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
   authDomain: "truvani-news-5ac15.firebaseapp.com",
@@ -17,67 +17,106 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Wait for HTML to load
 document.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const authArea = document.getElementById("authArea");
   const adminArea = document.getElementById("adminArea");
   const authMsg = document.getElementById("authMsg");
+  const postBtn = document.getElementById("postBtn");
+  const aiBtn = document.getElementById("aiGenerateBtn");
+  const cancelEdit = document.getElementById("cancelEdit");
+  const articlesList = document.getElementById("articlesList");
 
   // 🔹 LOGIN
   loginBtn.addEventListener("click", async () => {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
-    authMsg.style.color = "#fbbf24";
     authMsg.innerText = "Logging in...";
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      authMsg.style.color = "#22c55e";
-      authMsg.innerText = "✅ Login successful!";
-      setTimeout(() => {
-        authArea.style.display = "none";
-        adminArea.style.display = "block";
-        logoutBtn.style.display = "block";
-      }, 1000);
-    } catch (error) {
-      authMsg.style.color = "#f87171";
-      authMsg.innerText = "❌ " + error.message;
+      await signInWithEmailAndPassword(auth, email, password);
+      authMsg.innerText = "✅ Login Successful!";
+      authArea.style.display = "none";
+      adminArea.style.display = "block";
+      logoutBtn.style.display = "block";
+      loadArticles(); // load existing news
+    } catch (e) {
+      authMsg.innerText = "❌ " + e.message;
     }
   });
 
   // 🔹 LOGOUT
   logoutBtn.addEventListener("click", async () => {
     await signOut(auth);
-    logoutBtn.style.display = "none";
-    adminArea.style.display = "none";
     authArea.style.display = "block";
-    authMsg.innerText = "";
+    adminArea.style.display = "none";
+    logoutBtn.style.display = "none";
   });
 
-  // 🔹 ADD ARTICLE (basic example)
-  const postBtn = document.getElementById("postBtn");
+  // 🔹 POST NEW ARTICLE
   postBtn.addEventListener("click", async () => {
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-    const imageUrl = document.getElementById("imageUrl").value;
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const imageUrl = document.getElementById("imageUrl").value.trim();
+    const category = document.getElementById("category").value;
+    const subcategory = document.getElementById("subcategory").value;
+    const status = document.getElementById("status").value;
 
     if (!title || !content) {
-      alert("Please fill all fields!");
+      alert("Please enter title and content!");
       return;
     }
 
-    await addDoc(collection(db, "news"), {
-      title,
-      content,
-      imageUrl,
-      createdAt: new Date(),
-    });
-
-    alert("✅ Article Published!");
-    document.getElementById("title").value = "";
-    document.getElementById("content").value = "";
-    document.getElementById("imageUrl").value = "";
+    try {
+      await addDoc(collection(db, "news"), {
+        title, content, imageUrl, category, subcategory, status,
+        createdAt: serverTimestamp()
+      });
+      alert("✅ Article Published!");
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      document.getElementById("imageUrl").value = "";
+      loadArticles();
+    } catch (e) {
+      alert("❌ " + e.message);
+    }
   });
+
+  // 🔹 AI GENERATE (demo)
+  aiBtn.addEventListener("click", () => {
+    document.getElementById("content").value =
+      "🧠 AI Generated Sample News:\n\nToday, the Truvani News team achieved another milestone with new updates and better design!";
+  });
+
+  // 🔹 CANCEL EDIT (dummy)
+  cancelEdit.addEventListener("click", () => {
+    document.getElementById("formTitle").innerText = "📰 Create New Article";
+    cancelEdit.style.display = "none";
+  });
+
+  // 🔹 LOAD ARTICLES
+  async function loadArticles() {
+    articlesList.innerHTML = "<p>Loading articles...</p>";
+    const snap = await getDocs(collection(db, "news"));
+    articlesList.innerHTML = "";
+
+    snap.forEach(docSnap => {
+      const a = docSnap.data();
+      const item = document.createElement("div");
+      item.classList.add("article-item");
+      item.innerHTML = `
+        <h3>${a.title}</h3>
+        <p>${a.content.slice(0, 80)}...</p>
+        <small>${a.category || "General"}</small><br>
+        <button class="btn" data-id="${docSnap.id}"><i class="fa fa-trash"></i> Delete</button>
+      `;
+      item.querySelector("button").addEventListener("click", async () => {
+        await deleteDoc(doc(db, "news", docSnap.id));
+        alert("🗑️ Article deleted!");
+        loadArticles();
+      });
+      articlesList.appendChild(item);
+    });
+  }
 });
