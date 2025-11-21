@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Truvani News | Fast & Offline Ready</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P3T36GZQV8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-P3T36GZQV8');
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* --- VARIABLES --- */
+    :root {
+      --primary: #007bff;
+      --bg-body: #f4f7f6;
+      --bg-card: #ffffff;
+      --text-main: #333;
+      --text-light: #666;
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --border: #e0e0e0;
+      --skeleton-base: #e0e0e0;
+      --skeleton-highlight: #f5f5f5;
+    }
+    [data-theme="dark"] {
+      --primary: #4dabf7;
+      --bg-body: #121212;
+      --bg-card: #1e1e1e;
+      --text-main: #e0e0e0;
+      --text-light: #aaa;
+      --header-bg: rgba(30, 30, 30, 0.95);
+      --border: #333;
+      --skeleton-base: #2a2a2a;
+      --skeleton-highlight: #383838;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: var(--bg-body); color: var(--text-main); padding-top: 70px; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      position: fixed; top: 0; width: 100%; z-index: 1000;
+      background: var(--header-bg); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); padding: 10px 5%;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    
+    /* Search Bar */
+    .search-box { position: relative; width: 100%; max-width: 300px; display: none; }
+    @media(min-width: 768px) { .search-box { display: block; } }
+    .search-input {
+      width: 100%; padding: 8px 35px 8px 15px; border-radius: 20px;
+      border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main); outline: none;
+    }
+    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+
+    /* Nav */
+    .nav-links { display: flex; gap: 15px; align-items: center; }
+    .admin-btn { background: var(--primary); color: #fff !important; padding: 6px 15px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; }
+    .theme-btn { background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; }
+
+    /* FILTERS */
+    .filters { display: flex; justify-content: center; gap: 10px; padding: 15px; flex-wrap: wrap; }
+    .chip {
+      padding: 6px 15px; border-radius: 50px; background: var(--bg-card); border: 1px solid var(--border);
+      cursor: pointer; font-size: 0.9rem; color: var(--text-light); transition: 0.2s;
+    }
+    .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .special-link { text-decoration: none; border-color: #FF6B35; color: #FF6B35; font-weight: bold; }
+
+    /* GRID */
+    .news-container {
+      max-width: 1200px; margin: 0 auto; padding: 20px; width: 100%;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;
+    }
+    .news-card {
+      background: var(--bg-card); border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+      border: 1px solid var(--border); transition: transform 0.2s;
+    }
+    .news-card:hover { transform: translateY(-3px); }
+    .card-img { width: 100%; height: 180px; object-fit: cover; background: var(--skeleton-base); }
+    .card-body { padding: 15px; display: flex; flex-direction: column; flex: 1; }
+    .card-tag { font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+    .card-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 15px; flex: 1; }
+    .read-btn { text-decoration: none; color: var(--primary); font-weight: 600; margin-top: auto; display: inline-flex; align-items: center; gap: 5px; }
+
+    /* SKELETON */
+    .skeleton {
+      background: var(--skeleton-base);
+      background-image: linear-gradient(90deg, var(--skeleton-base) 0px, var(--skeleton-highlight) 40px, var(--skeleton-base) 80px);
+      background-size: 600px; animation: shimmer 1.5s infinite linear;
+    }
+    .sk-title { height: 20px; width: 80%; margin-bottom: 10px; border-radius: 4px; }
+    .sk-text { height: 14px; width: 100%; margin-bottom: 8px; border-radius: 4px; }
+    @keyframes shimmer { 0% { background-position: -100px; } 100% { background-position: 200px; } }
+
+    /* FOOTER */
+    footer { background: var(--bg-card); border-top: 1px solid var(--border); padding: 40px 20px; text-align: center; margin-top: auto; }
+    .social-icons a { margin: 0 10px; font-size: 1.5rem; color: var(--text-main); transition: 0.3s; }
+    .social-icons a:hover { color: var(--primary); }
+    .footer-info { margin-top: 15px; font-size: 0.9rem; color: var(--text-light); line-height: 1.6; }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-newspaper"></i> Truvani</a>
+    
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search news...">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    </div>
+
+    <nav class="nav-links">
+      <a href="admin.html" class="admin-btn"><i class="fa-solid fa-user-shield"></i> Admin</a>
+      <button class="theme-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
+    </nav>
+  </header>
+
+  <div class="filters">
+    <div class="chip active" onclick="window.loadNews('all', this)">All</div>
+    <div class="chip" onclick="window.loadNews('Rajasthan', this)">Rajasthan</div>
+    <div class="chip" onclick="window.loadNews('Quantum', this)">Quantum</div>
+    <div class="chip" onclick="window.loadNews('Tech', this)">Tech</div>
+    <a href="rajasthan.html" class="chip special-link">Royal Rajasthan Page <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+
+  <section class="news-container" id="newsGrid">
+    <div class="news-card skeleton-card"><div class="card-img skeleton"></div><div class="card-body"><div class="skeleton sk-title"></div><div class="skeleton sk-text"></div></div></div>
+    <div class="news-card skeleton-card"><div class="card-img skeleton"></div><div class="card-body"><div class="skeleton sk-title"></div><div class="skeleton sk-text"></div></div></div>
+    <div class="news-card skeleton-card"><div class="card-img skeleton"></div><div class="card-body"><div class="skeleton sk-title"></div><div class="skeleton sk-text"></div></div></div>
+  </section>
+
+  <footer>
+    <h3>Truvani News</h3>
+    <p>Stay informed, stay ahead.</p>
+    <div class="social-icons" style="margin: 15px 0;">
+      <a href="mailto:truvaninews@gmail.com"><i class="fa-solid fa-envelope"></i></a>
+      <a href="https://www.youtube.com/@truvaninews"><i class="fa-brands fa-youtube"></i></a>
+      <a href="https://www.instagram.com/truvaninews?igsh=OGs3NnlzMGpzbWsw"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://x.com/truvaninews"><i class="fa-brands fa-x-twitter"></i></a>
+    </div>
+    <div class="footer-info">
+      📍 Rajasthan, Alwar – 301001 <br>
+      📞 +91 9462370*** <br>
+      © 2025 Nitin Choudhary | All Rights Reserved
+    </div>
+  </footer>
+
+  <script type="module">
+    // Import Libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+    import { getFirestore, collection, query, orderBy, limit, onSnapshot, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    // --- YOUR ACTUAL API CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+      authDomain: "truvani-news-5ac15.firebaseapp.com",
+      projectId: "truvani-news-5ac15",
+      storageBucket: "truvani-news-5ac15.appspot.com",
+      messagingSenderId: "742142167141",
+      appId: "1:742142167141:web:c2c116f5e50a574de85e8c",
+      measurementId: "G-P3T36GZQV8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const newsGrid = document.getElementById("newsGrid");
+
+    // --- SUPER ADVANCE STEP: Enable Offline Persistence ---
+    enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.log('Offline mode failed: Multiple tabs open');
+      } else if (err.code == 'unimplemented') {
+        console.log('Offline mode not supported by browser');
+      }
+    });
+
+    let unsubscribe = null;
+    let allData = [];
+
+    // LOAD NEWS FUNCTION
+    window.loadNews = (category, btn) => {
+      if(btn) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      // Show Skeleton while loading/filtering
+      newsGrid.innerHTML = `
+        <div class="news-card skeleton-card"><div class="card-img skeleton"></div><div class="card-body"><div class="skeleton sk-title"></div><div class="skeleton sk-text"></div></div></div>
+        <div class="news-card skeleton-card"><div class="card-img skeleton"></div><div class="card-body"><div class="skeleton sk-title"></div><div class="skeleton sk-text"></div></div></div>
+      `;
+
+      if(unsubscribe) unsubscribe();
+
+      let q;
+      const ref = collection(db, "news");
+      
+      if(category === 'all') {
+        q = query(ref, orderBy("timestamp", "desc"), limit(20));
+      } else {
+        q = query(ref, where("category", "==", category), orderBy("timestamp", "desc"), limit(20));
+      }
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        allData = [];
+        newsGrid.innerHTML = ""; // Clear skeleton
+        
+        if(snapshot.empty) {
+          newsGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;">No news found in ${category}</div>`;
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = { id: doc.id, ...data };
+          allData.push(item);
+          createCard(item);
+        });
+      }, (err) => {
+        console.error(err);
+        if(err.message.includes("index")) {
+          newsGrid.innerHTML = `<div style="color:red;text-align:center;grid-column:1/-1;">
+            <h3>Setup Required!</h3>
+            <p>Open Console (F12) and click the Firebase link to create an index.</p>
+          </div>`;
+        }
+      });
+    };
+
+    // Helper to Create Card
+    function createCard(data) {
+      const div = document.createElement("div");
+      div.className = "news-card";
+      div.innerHTML = `
+        <img src="${data.imageUrl || 'https://via.placeholder.com/400'}" class="card-img" loading="lazy" alt="news">
+        <div class="card-body">
+          <div class="card-tag">${data.category || 'News'}</div>
+          <h2 class="card-title">${data.title}</h2>
+          <p class="card-desc">${data.content.substring(0, 100)}...</p>
+          <a href="article.html?id=${data.id}" class="read-btn">Read More <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      `;
+      newsGrid.appendChild(div);
+    }
+
+    // SEARCH FUNCTIONALITY
+    document.getElementById('searchInput').addEventListener('keyup', (e) => {
+      const val = e.target.value.toLowerCase();
+      newsGrid.innerHTML = "";
+      const filtered = allData.filter(n => 
+        n.title.toLowerCase().includes(val) || 
+        (n.content && n.content.toLowerCase().includes(val))
+      );
+      
+      if(filtered.length === 0) newsGrid.innerHTML = "<p style='text-align:center;width:100%'>No results found.</p>";
+      filtered.forEach(createCard);
+    });
+
+    // DARK MODE
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', next);
+    });
+
+    // INIT
+    window.loadNews('all', document.querySelector('.chip.active'));
+  </script>
+</body>
+</html>
