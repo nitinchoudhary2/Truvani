@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// 1. CONFIGURATION
+// --- CONFIGURATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
   authDomain: "truvani-news-5ac15.firebaseapp.com",
@@ -18,35 +18,69 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// 2. INITIALIZE TOOLS
-var quill = new Quill('#editor', { theme: 'snow', placeholder: 'Write something amazing...' });
+// --- TOOLS INIT ---
+var quill = new Quill('#editor', { theme: 'snow', placeholder: 'Story yahan likhein...' });
 let myChart = null;
 let editingId = null;
 let allNews = [];
 
-// 3. AUTHENTICATION LOGIC
-onAuthStateChanged(auth, user => {
+// --- 🔒 STRICT SECURITY LOGIC (MAGIC PART) ---
+
+// Step 1: Default State = LOCKED
+const authScreen = document.getElementById('authScreen');
+const adminUI = document.getElementById('adminUI');
+
+// Ensure UI starts Hidden
+authScreen.style.display = 'flex';
+adminUI.style.display = 'none';
+
+// Step 2: Monitor Auth State
+onAuthStateChanged(auth, (user) => {
   if (user) {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('adminUI').style.display = 'flex';
+    // Agar user login hai -> Lock kholo
+    authScreen.style.display = 'none';
+    adminUI.style.display = 'flex';
     loadDashboard();
-    Swal.fire({ icon: 'success', title: 'System Online', text: 'Welcome Admin', timer: 1500, showConfirmButton: false, background: '#1e293b', color:'#fff' });
+    Swal.fire({ icon: 'success', title: 'Unlocked', timer: 1000, showConfirmButton: false, toast: true, position: 'top-end' });
   } else {
-    document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('adminUI').style.display = 'none';
+    // Agar user nahi hai -> Lock lagao
+    authScreen.style.display = 'flex';
+    adminUI.style.display = 'none';
   }
 });
 
+// Step 3: Login Function (With Session Persistence)
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const e = document.getElementById('email').value;
   const p = document.getElementById('password').value;
-  try { await signInWithEmailAndPassword(auth, e, p); } 
-  catch(err) { Swal.fire({ icon: 'error', title: 'Access Denied', text: err.message }); }
+  const btn = document.getElementById('loginBtn');
+
+  btn.innerText = "Checking...";
+
+  try {
+    // Ye line ensure karti hai ki Tab band karte hi Logout ho jaye
+    await setPersistence(auth, browserSessionPersistence);
+    
+    // Ab login karo
+    await signInWithEmailAndPassword(auth, e, p);
+    
+    btn.innerText = "Unlock Success";
+  } catch (err) {
+    btn.innerText = "Secure Login";
+    Swal.fire({ icon: 'error', title: 'Wrong Password', text: 'Access Denied!' });
+  }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+// Step 4: Logout Function
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  signOut(auth).then(() => {
+    Swal.fire('Locked', 'Dashboard Secured.', 'success');
+  });
+});
 
-// 4. PUBLISH / UPLOAD LOGIC
+// --- 📝 CRUD OPERATIONS (News Upload/Edit/Delete) ---
+
+// Publish Button
 document.getElementById('publishBtn').addEventListener('click', async () => {
   const title = document.getElementById('inpTitle').value;
   const content = quill.root.innerHTML;
@@ -55,44 +89,54 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
   const file = document.getElementById('inpFile').files[0];
   let url = document.getElementById('inpUrl').value;
 
-  if(!title) return Swal.fire('Wait!', 'Headline is required.', 'warning');
-  
+  if(!title) return Swal.fire('Error', 'Title likhna zaroori hai', 'warning');
+
   const btn = document.getElementById('publishBtn');
-  btn.innerText = "Processing...";
+  btn.innerText = "Uploading...";
+  btn.disabled = true;
 
   try {
-    // Upload Image if selected
+    // 1. Upload Image (Agar select ki hai)
     if(file) {
       const sRef = ref(storage, `news/${Date.now()}_${file.name}`);
       await uploadBytes(sRef, file);
       url = await getDownloadURL(sRef);
     }
 
-    const data = { title, content, category: cat, subcategory: sub, imageUrl: url, updatedAt: serverTimestamp() };
+    const data = { 
+      title, content, category: cat, subcategory: sub, imageUrl: url, 
+      updatedAt: serverTimestamp() 
+    };
 
     if(editingId) {
+      // Edit Mode
       await updateDoc(doc(db, "news", editingId), data);
-      Swal.fire('Updated!', 'Article modified successfully.', 'success');
+      Swal.fire('Updated!', 'News update ho gayi.', 'success');
     } else {
+      // New Post Mode
       data.createdAt = serverTimestamp();
       data.views = 0;
       data.reactions = {'👍':0, '❤️':0, '🔥':0};
       data.status = 'published';
       await addDoc(collection(db, "news"), data);
-      Swal.fire('Published!', 'Article is live.', 'success');
+      Swal.fire('Published!', 'News live ho gayi.', 'success');
     }
     resetForm();
-  } catch(e) { Swal.fire('Error', e.message, 'error'); }
-  btn.innerText = "Publish News 🚀";
+  } catch(e) { 
+    Swal.fire('Error', e.message, 'error'); 
+  } finally {
+    btn.innerText = "Publish News 🚀";
+    btn.disabled = false;
+  }
 });
 
-// 5. DASHBOARD DATA & CHART
+// Load Dashboard Data
 function loadDashboard() {
   const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
   
   onSnapshot(q, (snap) => {
     allNews = [];
-    let v=0, l=0;
+    let v = 0, l = 0;
     const tbody = document.getElementById('newsTable');
     tbody.innerHTML = "";
 
@@ -102,7 +146,8 @@ function loadDashboard() {
       allNews.push({...d, id});
       
       v += (d.views || 0);
-      l += (d.reactions?.['👍'] || 0) + (d.reactions?.['❤️'] || 0);
+      const r = (d.reactions?.['👍']||0) + (d.reactions?.['❤️']||0) + (d.reactions?.['🔥']||0);
+      l += r;
 
       tbody.innerHTML += `
         <tr>
@@ -112,7 +157,7 @@ function loadDashboard() {
               <div><b>${d.title}</b><br><small style="color:#aaa">${d.category}</small></div>
             </div>
           </td>
-          <td>👁️ ${d.views||0}</td>
+          <td>👁️ ${d.views||0} ❤️ ${r}</td>
           <td>
             <button class="action-btn edit" onclick="window.editNews('${id}')"><i class="fa-solid fa-pen"></i></button>
             <button class="action-btn del" onclick="window.delNews('${id}')"><i class="fa-solid fa-trash"></i></button>
@@ -127,16 +172,11 @@ function loadDashboard() {
   });
 }
 
-// 6. GLOBAL FUNCTIONS (Attached to Window for HTML access)
+// --- 🌍 GLOBAL HELPERS ---
 window.switchTab = (id) => {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-};
-
-window.delNews = async (id) => {
-  const res = await Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444' });
-  if(res.isConfirmed) await deleteDoc(doc(db, "news", id));
 };
 
 window.editNews = (id) => {
@@ -149,11 +189,15 @@ window.editNews = (id) => {
   editingId = id;
   
   window.switchTab('create');
-  document.getElementById('publishBtn').innerText = "Update Article";
+  document.getElementById('publishBtn').innerText = "Update News";
   document.getElementById('cancelBtn').style.display = "inline-block";
 };
 
-// 7. HELPERS
+window.delNews = async (id) => {
+  const res = await Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444' });
+  if(res.isConfirmed) await deleteDoc(doc(db, "news", id));
+};
+
 document.getElementById('cancelBtn').addEventListener('click', resetForm);
 
 function resetForm() {
@@ -189,10 +233,13 @@ function renderChart(views, likes) {
   });
 }
 
-// Live Preview Update
-document.getElementById('inpTitle').addEventListener('input', (e) => {
-  document.getElementById('prevTitle').innerText = e.target.value;
+// Search Function
+document.getElementById('searchBox').addEventListener('input', (e) => {
+  const val = e.target.value.toLowerCase();
+  document.querySelectorAll('#newsTable tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+  });
 });
-document.getElementById('inpUrl').addEventListener('input', (e) => {
-  document.getElementById('prevImg').src = e.target.value;
-});
+
+// Live Preview Text
+document.getElementById('inpTitle').addEventListener('input', (e) => document.getElementById('prevTitle').innerText = e.target.value);
