@@ -155,3 +155,41 @@ function filterNews(categoryOrEvent) {
 
 // Start
 loadNews();
+function filterNews(categoryOrEvent) {
+    const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    // 1. Pata karo ki user ne kaunsa Tab dabaya hai
+    let activeCat = 'All';
+    if(typeof categoryOrEvent === 'string') activeCat = categoryOrEvent;
+    else {
+        const activeChip = document.querySelector('.chip.active');
+        if(activeChip) activeCat = activeChip.innerText;
+    }
+
+    // 2. Har Card ko check karo
+    document.querySelectorAll('.news-card').forEach(card => {
+        const title = card.dataset.title;
+        const cat = card.dataset.category;
+        
+        const matchSearch = title.includes(searchVal);
+        let matchCat = false;
+
+        // --- 🔴 YAHAN HAI MAGIC LOGIC ---
+        
+        if (activeCat === 'All') {
+            // Agar "All" select hai, to sab dikhao PAR "Rajasthan" ko chhupa do
+            if (cat === 'Rajasthan') {
+                matchCat = false; // Chhupa do
+            } else {
+                matchCat = true;  // Dikha do
+            }
+        } else {
+            // Agar koi specific button dabaya (jaise Tech, Rajasthan), to sirf wahi dikhao
+            matchCat = (cat === activeCat);
+        }
+
+        // --------------------------------
+
+        card.style.display = matchSearch && matchCat ? 'block' : 'none';
+    });
+}
