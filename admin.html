@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truvani HQ | Secure Dashboard</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root { --bg: #0f172a; --sidebar: #1e293b; --card: #334155; --accent: #6366f1; --text: #f8fafc; }
+    * { box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+    body { background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; overflow: hidden; }
+
+    /* LOGIN OVERLAY */
+    #authScreen { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b4b, #000); }
+    .login-box { width: 350px; padding: 40px; background: rgba(255,255,255,0.05); border: 1px solid #334155; border-radius: 20px; backdrop-filter: blur(10px); text-align: center; }
+    .inp { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 8px; margin-bottom: 15px; outline: none; }
+    .btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    .btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--accent); }
+
+    /* SIDEBAR & MAIN */
+    .sidebar { width: 260px; background: var(--sidebar); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid #334155; }
+    .brand { font-size: 1.8rem; font-weight: 800; margin-bottom: 40px; color: white; display: flex; gap: 10px; align-items: center; }
+    .nav-item { padding: 12px; margin-bottom: 5px; color: #94a3b8; cursor: pointer; border-radius: 10px; display: flex; gap: 10px; align-items: center; transition: 0.3s; }
+    .nav-item:hover, .nav-item.active { background: var(--accent); color: white; }
+    .main { flex: 1; padding: 30px; overflow-y: auto; }
+
+    /* DASHBOARD ELEMENTS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+    .num { font-size: 2.5rem; font-weight: bold; color: white; }
+    
+    /* EDITOR */
+    .editor-container { background: #fff; color: #000; border-radius: 10px; margin-bottom: 20px; }
+    .ql-toolbar { background: #cbd5e1; border-radius: 10px 10px 0 0; }
+    .ql-container { height: 250px; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { text-align: left; color: #94a3b8; padding: 10px; border-bottom: 1px solid #475569; }
+    td { padding: 10px; border-bottom: 1px solid #475569; }
+    .action-btn { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; margin-right: 5px; }
+    .edit { background: #10b981; color: white; } .del { background: #ef4444; color: white; }
+
+    .section { display: none; animation: fadeUp 0.4s; }
+    .section.active { display: block; }
+    @keyframes fadeUp { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+    @media(max-width: 800px) { .sidebar { display: none; } }
+  </style>
+</head>
+<body>
+
+  <div id="authScreen">
+    <div class="login-box">
+      <h2><i class="fa-solid fa-shield-halved"></i> Admin Access</h2>
+      <input type="email" id="email" class="inp" placeholder="Email">
+      <input type="password" id="password" class="inp" placeholder="Password">
+      <button id="loginBtn" class="btn">Login Dashboard</button>
+    </div>
+  </div>
+
+  <div id="adminUI" style="display:none; width:100%;">
+    <div class="sidebar">
+      <div class="brand"><i class="fa-brands fa-space-awesome"></i> TRUVANI</div>
+      <div class="nav-item active" onclick="window.switchTab('dash')"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+      <div class="nav-item" onclick="window.switchTab('create')"><i class="fa-solid fa-pen-nib"></i> Create News</div>
+      <div class="nav-item" onclick="window.switchTab('list')"><i class="fa-solid fa-list"></i> Manage News</div>
+      <div class="nav-item" id="logoutBtn" style="margin-top:auto; background:#334155;"><i class="fa-solid fa-power-off"></i> Logout</div>
+    </div>
+
+    <div class="main">
+      <div id="dash" class="section active">
+        <h1>Analytics Overview</h1>
+        <div class="stats-grid">
+          <div class="card"><div class="num" id="totalNews">0</div><div>Total Articles</div></div>
+          <div class="card"><div class="num" id="totalViews">0</div><div>Total Views</div></div>
+          <div class="card"><div class="num" id="totalLikes">0</div><div>Reactions</div></div>
+        </div>
+        <div class="card" style="height: 350px;"><canvas id="viewChart"></canvas></div>
+      </div>
+
+      <div id="create" class="section">
+        <h1>Compose Article</h1>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+          <div>
+            <input type="text" id="inpTitle" class="inp" placeholder="Headline Title">
+            <div style="display:flex; gap:10px;">
+              <select id="inpCat" class="inp"><option>General</option><option>Rajasthan</option><option>Quantum</option><option>Tech</option><option>Politics</option></select>
+              <input type="text" id="inpSub" class="inp" placeholder="Sub-Category (e.g. Jaipur)">
+            </div>
+            <div class="editor-container"><div id="editor"></div></div>
+            <label>Featured Image</label>
+            <input type="file" id="inpFile" class="inp">
+            <input type="text" id="inpUrl" class="inp" placeholder="Or paste Image URL">
+            
+            <div style="display:flex; gap:10px;">
+              <button id="publishBtn" class="btn">Publish News 🚀</button>
+              <button id="cancelBtn" class="btn" style="background:#475569; display:none;">Cancel</button>
+            </div>
+          </div>
+          <div class="card" style="height: fit-content;">
+            <h3>Live Preview</h3>
+            <img id="prevImg" src="https://via.placeholder.com/400" style="width:100%; border-radius:10px; margin-bottom:10px;">
+            <h3 id="prevTitle">Title Here...</h3>
+            <p id="prevDesc" style="font-size:0.8rem; color:#aaa;">Content preview...</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="list" class="section">
+        <h1>Manage Database</h1>
+        <input type="text" id="searchBox" class="inp" placeholder="Search articles...">
+        <div class="card">
+          <table>
+            <thead><tr><th>Article</th><th>Stats</th><th>Action</th></tr></thead>
+            <tbody id="newsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
