@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truvani | Rajasthan Special</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ROYAL THEME VARIABLES --- */
+        :root {
+            --orange: #FF6B35;
+            --gold: #FFD700;
+            --dark: #1a0a00;
+            --skeleton-base: rgba(255, 255, 255, 0.1);
+            --skeleton-highlight: rgba(255, 255, 255, 0.2);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #1a0a00 0%, #2d1810 100%);
+            color: white; min-height: 100vh;
+        }
+        /* Pattern Overlay */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 107, 53, 0.05) 35px, rgba(255, 107, 53, 0.05) 70px);
+            z-index: -1;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #FF6B35, #FF8C00);
+            padding: 20px 5%; border-bottom: 4px solid var(--gold);
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .title { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .back-btn {
+            background: rgba(0,0,0,0.2); color: white; padding: 8px 20px;
+            border-radius: 20px; text-decoration: none; border: 1px solid rgba(255,255,255,0.4);
+            transition: 0.3s; font-size: 0.9rem;
+        }
+        .back-btn:hover { background: var(--gold); color: black; }
+
+        /* STATS BAR */
+        .stats {
+            display: flex; gap: 15px; padding: 20px 5%; overflow-x: auto;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--orange);
+            padding: 15px; border-radius: 10px; min-width: 120px; text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        .stat-num { font-size: 1.5rem; color: var(--gold); font-weight: bold; }
+        .stat-lbl { font-size: 0.8rem; color: #ccc; }
+
+        /* TABS */
+        .tabs { padding: 0 5%; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .tab-btn {
+            background: transparent; border: 1px solid var(--orange); color: #ccc;
+            padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: 0.3s;
+        }
+        .tab-btn.active, .tab-btn:hover { background: var(--orange); color: white; box-shadow: 0 0 15px var(--orange); }
+
+        /* NEWS GRID */
+        .grid { padding: 0 5%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding-bottom: 40px; }
+        .card {
+            background: rgba(255,255,255,0.05); border: 1px solid #333;
+            border-radius: 15px; overflow: hidden; transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        .card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        
+        .card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 2px solid var(--orange); background: #333; }
+        .content { padding: 15px; }
+        .tag { color: var(--gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .h-title { margin: 8px 0; font-size: 1.2rem; line-height: 1.4; color: #fff; }
+        .desc { color: #aaa; font-size: 0.9rem; margin-bottom: 15px; }
+        .read { color: var(--orange); text-decoration: none; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* LOADING SKELETON */
+        .skeleton {
+            background: var(--skeleton-base);
+            background-image: linear-gradient(90deg, var(--skeleton-base) 0px, var(--skeleton-highlight) 40px, var(--skeleton-base) 80px);
+            background-size: 600px; animation: shimmer 1.5s infinite linear;
+        }
+        .sk-img { height: 180px; width: 100%; }
+        .sk-text { height: 20px; width: 80%; margin: 10px; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: -100px; } 100% { background-position: 200px; } }
+
+        @media (max-width: 768px) {
+            .title { font-size: 1.2rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div>
+            <div class="title"><i class="fa-brands fa-fort-awesome"></i> RAJASTHAN NEWS</div>
+            <small style="color:rgba(255,255,255,0.8)">Truvani Special Coverage</small>
+        </div>
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Home</a>
+    </header>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-num" id="totalCount">0</div>
+            <div class="stat-lbl">Total News</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num" id="jaipurCount">0</div>
+            <div class="stat-lbl">Jaipur</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">Live</div>
+            <div class="stat-lbl"><span style="color:red">●</span> Updates</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="window.filterLoc('all', this)">🏰 All Rajasthan</button>
+        <button class="tab-btn" onclick="window.filterLoc('Jaipur', this)">🏙️ Jaipur</button>
+        <button class="tab-btn" onclick="window.filterLoc('Jodhpur', this)">☀️ Jodhpur</button>
+        <button class="tab-btn" onclick="window.filterLoc('Udaipur', this)">🌊 Udaipur</button>
+        <button class="tab-btn" onclick="window.filterLoc('Kota', this)">📚 Kota</button>
+    </div>
+
+    <div class="grid" id="grid">
+        <div class="card"><div class="skeleton sk-img"></div><div class="skeleton sk-text"></div></div>
+        <div class="card"><div class="skeleton sk-img"></div><div class="skeleton sk-text"></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        // ⚠️ YOUR REAL API KEY IS HERE NOW
+        const firebaseConfig = {
+          apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
+          authDomain: "truvaninews.firebaseapp.com",
+          projectId: "truvaninews",
+          storageBucket: "truvani-news-5ac15.appspot.com",
+          messagingSenderId: "742142167141",
+          appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const grid = document.getElementById('grid');
+        let allNews = [];
+
+        // --- Enable Offline Mode ---
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code == 'failed-precondition') console.log('Multiple tabs open, persistence disabled');
+            else if (err.code == 'unimplemented') console.log('Browser does not support offline mode');
+        });
+
+        // --- LOAD DATA (Only Category = Rajasthan) ---
+        const q = query(collection(db, "news"), where("category", "==", "Rajasthan"), orderBy("createdAt", "desc"));
+
+        onSnapshot(q, (snap) => {
+            allNews = [];
+            grid.innerHTML = ""; // Clear skeleton
+
+            if(snap.empty) {
+                grid.innerHTML = `<p style="color:#aaa; text-align:center; grid-column:1/-1;">No Rajasthan news found yet.</p>`;
+                return;
+            }
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                allNews.push({ id: doc.id, ...data });
+            });
+            
+            // Update Stats
+            document.getElementById('totalCount').innerText = allNews.length;
+            // Count Jaipur in Title or Subcategory
+            const jaipurNews = allNews.filter(n => 
+                (n.subcategory && n.subcategory.includes('Jaipur')) || 
+                (n.title && n.title.includes('Jaipur'))
+            );
+            document.getElementById('jaipurCount').innerText = jaipurNews.length;
+
+            render(allNews);
+        }, (err) => {
+            console.error(err);
+            if(err.message.includes("index")) {
+                grid.innerHTML = `<div style="color:#ff4444; text-align:center; grid-column:1/-1;">
+                    <h3>Setup Required!</h3>
+                    <p>Admin: Open Console (F12) and click the link to create Index for Rajasthan.</p>
+                </div>`;
+            }
+        });
+
+        // --- RENDER CARD ---
+        function render(list) {
+            grid.innerHTML = "";
+            if(list.length === 0) {
+                grid.innerHTML = `<p style="color:#aaa; text-align:center; grid-column:1/-1;">No matches found.</p>`;
+                return;
+            }
+            
+            list.forEach(n => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <img src="${n.imageUrl || 'https://via.placeholder.com/400'}" loading="lazy" alt="news">
+                    <div class="content">
+                        <div class="tag">${n.subcategory || 'Rajasthan'}</div>
+                        <h3 class="h-title">${n.title}</h3>
+                        <p class="desc">${n.content.substring(0, 90)}...</p>
+                        <a href="article.html?id=${n.id}" class="read">Read Full Story <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // --- FILTER LOGIC ---
+        window.filterLoc = (loc, btn) => {
+            // Button Style
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Filter Data
+            if(loc === 'all') render(allNews);
+            else {
+                const filtered = allNews.filter(n => 
+                    (n.subcategory && n.subcategory.includes(loc)) || 
+                    (n.title && n.title.includes(loc)) || 
+                    (n.content && n.content.includes(loc))
+                );
+                render(filtered);
+            }
+        };
+    </script>
+</body>
+</html>
