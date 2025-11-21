@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// 🔹 Firebase Config
+// API KEY CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAeGWwKLkHB43i1FbedgkANPKcTCBh0Z9A",
   authDomain: "truvani-news-5ac15.firebaseapp.com",
@@ -13,114 +13,216 @@ const firebaseConfig = {
   appId: "1:742142167141:web:c2c116f5e50a574de85e8c"
 };
 
-// 🔹 Init
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-// DOM elements
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const postBtn = document.getElementById("postBtn");
-const uploadProgress = document.getElementById("uploadProgress");
-const imageInput = document.getElementById("imageInput");
-const adminArea = document.getElementById("adminArea");
-const authArea = document.getElementById("authArea");
-const authMsg = document.getElementById("authMsg");
+// --- INIT ADVANCED COMPONENTS ---
+// 1. Quill Editor
+var quill = new Quill('#quillEditor', {
+  theme: 'snow',
+  placeholder: 'Compose your story with full formatting...',
+  modules: {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link', 'clean']
+    ]
+  }
+});
 
-// 🔹 Login
-loginBtn.onclick = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// 2. Chart.js
+let viewsChart;
+function initChart(viewsData) {
+  const ctx = document.getElementById('viewsChart').getContext('2d');
+  
+  // Destroy if exists to update
+  if(viewsChart) viewsChart.destroy();
+
+  viewsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // Dummy timeline
+      datasets: [{
+        label: 'Weekly Views',
+        data: viewsData, // We will feed real aggregated data here
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: '#3f3f46' }, ticks: { color: '#a1a1aa' } },
+        x: { grid: { display: false }, ticks: { color: '#a1a1aa' } }
+      }
+    }
+  });
+}
+
+let editingId = null;
+let allNews = [];
+
+// --- AUTH ---
+onAuthStateChanged(auth, (user) => {
+  if(user) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('adminUI').style.display = 'flex';
+    loadDashboard();
+  } else {
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('adminUI').style.display = 'none';
+  }
+});
+
+document.getElementById('loginBtn').onclick = async () => {
   try {
-    await signInWithEmailAndPassword(auth, email, password);
-    authArea.style.display = "none";
-    adminArea.style.display = "block";
-    logoutBtn.style.display = "block";
-    loadArticles();
-  } catch (e) {
-    authMsg.innerText = "Login failed! Check credentials.";
-  }
+    await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
+    addLog("Admin Logged In");
+  } catch(e) { document.getElementById('loginMsg').innerText = e.message; }
 };
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-// 🔹 Logout
-logoutBtn.onclick = async () => {
-  await signOut(auth);
-  adminArea.style.display = "none";
-  authArea.style.display = "block";
-  logoutBtn.style.display = "none";
-};
+// --- CREATE / UPDATE NEWS ---
+document.getElementById('publishBtn').onclick = async () => {
+  const title = document.getElementById('inpTitle').value;
+  const content = quill.root.innerHTML; // Get HTML from Quill
+  const cat = document.getElementById('inpCategory').value;
+  const sub = document.getElementById('inpSub').value;
+  const file = document.getElementById('inpFile').files[0];
+  let img = document.getElementById('inpUrl').value;
 
-// 🔹 Upload Image
-uploadProgress.onclick = () => imageInput.click();
-let uploadedImageUrl = "";
+  if(!title || quill.getText().trim().length === 0) return showToast("Empty Article!");
 
-imageInput.onchange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  document.getElementById('publishBtn').innerText = "Deploying...";
 
-  const storageRef = ref(storage, "images/" + file.name);
-  uploadProgress.innerText = "Uploading...";
-  await uploadBytes(storageRef, file);
-  uploadedImageUrl = await getDownloadURL(storageRef);
-  uploadProgress.innerText = "✅ Uploaded";
-};
+  try {
+    if(file) {
+      const sRef = ref(storage, `news/${Date.now()}_${file.name}`);
+      await uploadBytes(sRef, file);
+      img = await getDownloadURL(sRef);
+    }
 
-// 🔹 Publish Article
-postBtn.onclick = async () => {
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
-  const category = document.getElementById("category").value;
-  const subcategory = document.getElementById("subcategory").value;
-  const imageUrl = uploadedImageUrl || document.getElementById("imageUrl").value;
-
-  if (!title || !content) {
-    alert("Title and Content are required!");
-    return;
-  }
-
-  await addDoc(collection(db, "news"), {
-    title,
-    content,
-    category,
-    subcategory,
-    imageUrl,
-    createdAt: new Date(),
-    views: 0
-  });
-
-  alert("✅ Article Published!");
-  loadArticles();
-};
-
-// 🔹 Load Articles
-async function loadArticles() {
-  const articlesList = document.getElementById("articlesList");
-  articlesList.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "news"));
-
-  querySnapshot.forEach((docSnap) => {
-    const a = docSnap.data();
-    const div = document.createElement("div");
-    div.classList.add("article-item");
-    div.innerHTML = `
-      <h3>${a.title}</h3>
-      <p>${a.content.slice(0, 100)}...</p>
-      <img src="${a.imageUrl}" width="100%">
-      <small>${a.category}</small> |
-      <small>${a.views || 0} Views</small>
-      <button class="btn deleteBtn" data-id="${docSnap.id}">🗑️ Delete</button>
-    `;
-    articlesList.appendChild(div);
-  });
-
-  // Delete buttons
-  document.querySelectorAll(".deleteBtn").forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.getAttribute("data-id");
-      await deleteDoc(doc(db, "news", id));
-      loadArticles();
+    const data = {
+      title, content, category: cat, subcategory: sub, imageUrl: img,
+      updatedAt: serverTimestamp()
     };
+
+    if(editingId) {
+      await updateDoc(doc(db, "news", editingId), data);
+      showToast("System Updated Article");
+      addLog(`Updated: ${title}`);
+    } else {
+      data.createdAt = serverTimestamp();
+      data.views = 0;
+      data.reactions = {'👍':0, '❤️':0, '🔥':0};
+      await addDoc(collection(db, "news"), data);
+      showToast("Deployed Successfully");
+      addLog(`Published: ${title}`);
+    }
+    resetForm();
+  } catch(e) { showToast(e.message); }
+  document.getElementById('publishBtn').innerText = "Deploy Article";
+};
+
+// --- DASHBOARD & DATA ---
+function loadDashboard() {
+  const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+  
+  onSnapshot(q, (snap) => {
+    allNews = [];
+    let totalViews = 0;
+    let totalLikes = 0;
+    const tbody = document.getElementById('newsTableBody');
+    tbody.innerHTML = "";
+    
+    // For Chart Simulation
+    let chartData = [10, 25, 40, 30, 50, 70, 0]; 
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      const id = doc.id;
+      allNews.push({...d, id});
+
+      totalViews += (d.views || 0);
+      const r = (d.reactions?.['👍']||0) + (d.reactions?.['❤️']||0) + (d.reactions?.['🔥']||0);
+      totalLikes += r;
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="display:flex; align-items:center; gap:10px;">
+            <img src="${d.imageUrl}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;">
+            <b>${d.title}</b>
+          </td>
+          <td><span style="background:#3f3f46; padding:4px 8px; border-radius:5px; font-size:0.8rem;">${d.category}</span></td>
+          <td>👁️ ${d.views||0} / ❤️ ${r}</td>
+          <td>
+            <i class="fa-solid fa-pen action-icon" style="color:#10b981;" onclick="window.edit('${id}')"></i>
+            <i class="fa-solid fa-trash action-icon" style="color:#ef4444;" onclick="window.del('${id}')"></i>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('totalNews').innerText = snap.size;
+    document.getElementById('totalViews').innerText = totalViews;
+    document.getElementById('totalLikes').innerText = totalLikes;
+
+    // Update Chart with current view total as the last point (Simulation)
+    chartData[6] = totalViews; 
+    initChart(chartData);
   });
+}
+
+// --- HELPERS ---
+window.edit = (id) => {
+  const n = allNews.find(x => x.id === id);
+  document.getElementById('inpTitle').value = n.title;
+  quill.root.innerHTML = n.content; // Set Quill content
+  document.getElementById('inpCategory').value = n.category;
+  document.getElementById('inpSub').value = n.subcategory || '';
+  document.getElementById('inpUrl').value = n.imageUrl;
+  editingId = id;
+  
+  switchTab('create');
+  document.getElementById('publishBtn').innerText = "Update System";
+  showToast("Loaded into Editor");
+};
+
+window.del = async (id) => {
+  if(confirm("Confirm deletion?")) {
+    await deleteDoc(doc(db, "news", id));
+    addLog("Deleted an article");
+  }
+};
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('inpTitle').value = "";
+  quill.root.innerHTML = "";
+  document.getElementById('inpUrl').value = "";
+  document.getElementById('inpFile').value = "";
+  document.getElementById('publishBtn').innerText = "Deploy Article";
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function addLog(action) {
+  const list = document.getElementById('activityList');
+  const div = document.createElement('div');
+  div.className = 'log-item';
+  div.innerHTML = `<span>${action}</span><span class="log-time">Just now</span>`;
+  list.prepend(div);
 }
