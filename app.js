@@ -1,4 +1,4 @@
-// app.js - CLEAN & 100% WORKING VERSION
+// app.js - FINAL WORKING VERSION
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -7,197 +7,151 @@ const categoryFilter = document.getElementById("categoryFilter");
 const searchInput = document.getElementById("searchInput");
 const themeToggle = document.getElementById("themeToggle");
 
-let allArticles = [];
-
-// ✅ Theme Toggle (100% Working)
+// --- 1. THEME LOGIC ---
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark-theme');
-  themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
-  localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+  const isDark = document.body.classList.contains('dark-theme');
+  themeToggle.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
 });
 
-// Load saved theme
+// Load Saved Theme
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark-theme');
-  themeToggle.textContent = '☀️';
+  themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
 }
 
-// ✅ Load News with Real-time Updates (100% Working)
+// --- 2. LOAD NEWS ---
 function loadNews() {
-  newsContainer.innerHTML = '<div class="loading">⏳ Loading news...</div>';
+  newsContainer.innerHTML = '<div class="loading">Loading Updates...</div>';
   
-  const newsRef = collection(db, "news");
-  const q = query(newsRef, orderBy("createdAt", "desc"));
+  const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
   
   onSnapshot(q, (snapshot) => {
-    allArticles = [];
     newsContainer.innerHTML = "";
     
     if (snapshot.empty) {
-      newsContainer.innerHTML = `
-        <div class="loading">
-          <h2 style="font-size:3rem;margin-bottom:15px">📰</h2>
-          <p>No news available yet!</p>
-        </div>
-      `;
+      newsContainer.innerHTML = `<div style="text-align:center; width:100%">No news found!</div>`;
       return;
     }
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const id = docSnap.id;
-      
-      // Only show published articles
       if (data.status === 'published' || !data.status) {
-        allArticles.push({ id, ...data });
-        createNewsCard(id, data);
+        createNewsCard(docSnap.id, data);
       }
     });
-    
-    console.log(`✅ Loaded ${allArticles.length} articles`);
-  }, (error) => {
-    console.error("❌ Error loading news:", error);
-    newsContainer.innerHTML = `
-      <div class="loading" style="color:var(--danger)">
-        <h2>❌ Error Loading News</h2>
-        <p>${error.message}</p>
-      </div>
-    `;
   });
 }
 
-// ✅ Create News Card (100% Working)
+// --- 3. CREATE CARD (With Reactions & Read More Fix) ---
 function createNewsCard(id, data) {
   const card = document.createElement("div");
   card.classList.add("news-card");
   card.dataset.category = data.category || 'General';
   card.dataset.title = (data.title || '').toLowerCase();
 
+  // Stats
   const likes = data.reactions?.['👍'] || 0;
   const hearts = data.reactions?.['❤️'] || 0;
   const fires = data.reactions?.['🔥'] || 0;
-  const views = data.views || 0;
+  
+  // Date Format
+  const dateObj = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+  const dateStr = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
   const imageHtml = data.imageUrl 
-    ? `<img src="${data.imageUrl}" alt="News" class="news-image" loading="lazy" onerror="this.src='https://via.placeholder.com/400x220?text=News'">` 
-    : '<div class="news-image" style="background:linear-gradient(135deg,#007bff,#0056b3);display:flex;align-items:center;justify-content:center;font-size:3rem;color:white">📰</div>';
+    ? `<img src="${data.imageUrl}" class="news-image" loading="lazy" alt="News">` 
+    : `<div class="news-image" style="background:#333; display:flex; align-items:center; justify-content:center;">📰</div>`;
 
   card.innerHTML = `
     ${imageHtml}
     <div class="news-content">
-      <div class="news-category">${data.category || 'General'}</div>
-      <h2 class="news-title">${escape(data.title || 'Untitled')}</h2>
-      <p class="news-excerpt">${escape(truncate(data.content || '', 120))}</p>
+      <div class="news-category">${data.category || 'News'}</div>
+      <h2 class="news-title">${data.title}</h2>
+      <p class="news-excerpt">${data.content ? data.content.substring(0, 100) : ''}...</p>
       
       <div class="news-meta">
-        <span>👁️ ${views}</span>
-        <span>📅 ${getDate(data.createdAt)}</span>
+        <span><i class="fa-regular fa-eye"></i> ${data.views || 0}</span>
+        <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
       </div>
       
-      <div class="reactions">
-        <button class="reaction-btn" data-id="${id}" data-type="👍">
-          👍 <span>${likes}</span>
-        </button>
-        <button class="reaction-btn" data-id="${id}" data-type="❤️">
-          ❤️ <span>${hearts}</span>
-        </button>
-        <button class="reaction-btn" data-id="${id}" data-type="🔥">
-          🔥 <span>${fires}</span>
-        </button>
+      <div class="reactions" style="margin: 10px 0; display:flex; gap:10px;">
+        <button class="reaction-btn" data-id="${id}" data-type="👍">👍 ${likes}</button>
+        <button class="reaction-btn" data-id="${id}" data-type="❤️">❤️ ${hearts}</button>
+        <button class="reaction-btn" data-id="${id}" data-type="🔥">🔥 ${fires}</button>
       </div>
       
-      <button class="read-more-btn">Read More →</button>
+      <button class="read-more-btn" style="width:100%; margin-top:10px;">Read More →</button>
     </div>
   `;
 
   newsContainer.appendChild(card);
-  
-  // ✅ Add reaction listeners (100% Working)
+
+  // Reaction Click Event
   card.querySelectorAll('.reaction-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       react(btn.dataset.id, btn.dataset.type);
-      // Visual feedback
       btn.style.transform = 'scale(1.2)';
       setTimeout(() => btn.style.transform = 'scale(1)', 200);
     });
   });
-  
-  // ✅ Increment view (100% Working)
-  incrementView(id);
+
+  // Read More Click Event (Fix)
+  const readBtn = card.querySelector('.read-more-btn');
+  readBtn.addEventListener('click', async () => {
+    await incrementView(id);
+    window.location.href = `article.html?id=${id}`;
+  });
 }
 
-// ✅ React Function (100% Working)
+// --- 4. UTILITY FUNCTIONS ---
 async function react(id, type) {
   try {
-    await updateDoc(doc(db, "news", id), {
-      [`reactions.${type}`]: increment(1)
-    });
-  } catch (err) {
-    console.error("Reaction error:", err);
-  }
+    const newsRef = doc(db, "news", id);
+    await updateDoc(newsRef, { [`reactions.${type}`]: increment(1) });
+  } catch (e) { console.error(e); }
 }
 
-// ✅ Increment View (100% Working)
 async function incrementView(id) {
-  const key = `viewed_${id}`;
-  if (sessionStorage.getItem(key)) return;
-  
+  if (sessionStorage.getItem(`viewed_${id}`)) return;
   try {
-    await updateDoc(doc(db, "news", id), {
-      views: increment(1)
+    await updateDoc(doc(db, "news", id), { views: increment(1) });
+    sessionStorage.setItem(`viewed_${id}`, 'true');
+  } catch (e) { console.error(e); }
+}
+
+// Search & Filter
+if(searchInput) searchInput.addEventListener('input', filterNews);
+if(categoryFilter) categoryFilter.addEventListener('click', (e) => {
+    if(e.target.classList.contains('chip')) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        filterNews(e.target.innerText); // Pass category text
+    }
+});
+
+function filterNews(categoryOrEvent) {
+    const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+    // Check if argument is event or string
+    let activeCat = 'All';
+    if(typeof categoryOrEvent === 'string') activeCat = categoryOrEvent;
+    else {
+        const activeChip = document.querySelector('.chip.active');
+        if(activeChip) activeCat = activeChip.innerText;
+    }
+
+    document.querySelectorAll('.news-card').forEach(card => {
+        const title = card.dataset.title;
+        const cat = card.dataset.category;
+        
+        const matchSearch = title.includes(searchVal);
+        const matchCat = activeCat === 'All' || cat === activeCat;
+        
+        card.style.display = matchSearch && matchCat ? 'block' : 'none';
     });
-    sessionStorage.setItem(key, 'true');
-  } catch (err) {
-    console.error("View error:", err);
-  }
 }
 
-// ✅ Filter by Category (100% Working)
-if (categoryFilter) {
-  categoryFilter.addEventListener('change', filterNews);
-}
-
-// ✅ Search (100% Working)
-if (searchInput) {
-  searchInput.addEventListener('input', filterNews);
-}
-
-function filterNews() {
-  const category = categoryFilter?.value || 'all';
-  const search = searchInput?.value.toLowerCase() || '';
-  
-  document.querySelectorAll('.news-card').forEach(card => {
-    const cardCategory = card.dataset.category;
-    const cardTitle = card.dataset.title;
-    
-    const matchCategory = category === 'all' || cardCategory === category;
-    const matchSearch = !search || cardTitle.includes(search);
-    
-    card.style.display = matchCategory && matchSearch ? 'block' : 'none';
-  });
-}
-
-// ✅ Utility Functions
-function escape(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function truncate(text, length) {
-  return text.length > length ? text.substring(0, length) + '...' : text;
-}
-
-function getDate(timestamp) {
-  if (!timestamp) return 'Recently';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-IN', { 
-    day: 'numeric', 
-    month: 'short'
-  });
-}
-
-// Initialize
-console.log('✅ Truvani News - App Loaded');
+// Start
 loadNews();
